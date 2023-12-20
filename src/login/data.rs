@@ -27,7 +27,7 @@ pub struct Login {
     #[builder(default = "true")]
     pub open_browser: bool,
     #[builder(default = "CredentialsFormat::Csv")]
-    pub format: CredentialsFormat
+    pub format: CredentialsFormat,
 }
 
 impl LoginBuilder {
@@ -35,15 +35,14 @@ impl LoginBuilder {
         let os = env::consts::OS;
         match os {
             "windows" => todo!(),
-            _ => Ok("~/.satori/credentials.json".to_owned())
+            _ => Ok("~/.satori/credentials.json".to_owned()),
         }
     }
 }
-
 
 #[derive(Debug)]
 pub enum CredentialsFormat {
     Json,
     Yaml,
-    Csv
+    Csv,
 }

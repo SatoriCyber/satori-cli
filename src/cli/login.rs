@@ -1,4 +1,4 @@
-use clap::{ Command, arg, value_parser, ValueEnum, Arg, ArgAction,};
+use clap::{arg, value_parser, Arg, ArgAction, Command, ValueEnum};
 
 use crate::login::data::CredentialsFormat;
 
@@ -6,7 +6,7 @@ use crate::login::data::CredentialsFormat;
 pub enum CliCredentialsFormat {
     Json,
     Yaml,
-    Csv
+    Csv,
 }
 
 impl From<CliCredentialsFormat> for CredentialsFormat {
@@ -14,17 +14,20 @@ impl From<CliCredentialsFormat> for CredentialsFormat {
         match value {
             CliCredentialsFormat::Json => CredentialsFormat::Json,
             CliCredentialsFormat::Yaml => CredentialsFormat::Yaml,
-            CliCredentialsFormat::Csv => CredentialsFormat::Csv
+            CliCredentialsFormat::Csv => CredentialsFormat::Csv,
         }
-    
     }
 }
 
-
 pub fn get_command() -> Command {
-   Command::new("login").about("Login to Satori").args(vec![
+    Command::new("login").about("Login to Satori").args(vec![
         arg!(-d --display  "Display the credentials or save to file"),
-        arg!(-f --format <FORMAT>).value_parser(value_parser!(CliCredentialsFormat)).default_value("csv"),
-        Arg::new("no-launch-browser").long("no-launch-browser").help("Don't launch the browser").action(ArgAction::SetTrue)
-   ])
+        arg!(-f --format <FORMAT>)
+            .value_parser(value_parser!(CliCredentialsFormat))
+            .default_value("csv"),
+        Arg::new("no-launch-browser")
+            .long("no-launch-browser")
+            .help("Don't launch the browser")
+            .action(ArgAction::SetTrue),
+    ])
 }

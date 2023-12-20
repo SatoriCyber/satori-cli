@@ -1,7 +1,7 @@
+pub mod data;
 pub mod errors;
 pub mod flow;
-pub mod data;
 mod web_server;
 
-pub use data::{LoginBuilder, Login};
+pub use data::{Login, LoginBuilder};
 pub use flow::run;

@@ -1,6 +1,6 @@
 pub mod api;
-pub mod errors;
 pub mod data;
+pub mod errors;
 
 pub use api::*;
 pub use data::*;
