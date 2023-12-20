@@ -28,4 +28,9 @@ jobs:
       run: cargo build --verbose    
     - name: clippy
       run: cargo clippy -- -D warnings
-      
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Audit
+        run: cargo audit
