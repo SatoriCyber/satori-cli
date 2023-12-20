@@ -29,8 +29,15 @@ jobs:
       uses: battila7/get-version-action@v2
     - name: Create release
       run: |
-        zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-${{runner.os}}.zip target/release/satori
-        tar czf satori-${{ steps.get_version.outputs.version-without-v }}-${{runner.os}}.tar.gz --directory=target/release satori
+        if [ "${{ runner.os }}" == "windows-latest" ]; then
+            Compress-Archive -Path target\release\satori -DestinationPath satori-${{ steps.get_version.outputs.version-without-v }}-${{ runner.os }}.zip
+        else
+            zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-${{ runner.os }}.zip target/release/satori
+        fi
+
+        if [ "${{ runner.os }}" != "windows-latest" ]; then
+            tar czf satori-${{ steps.get_version.outputs.version-without-v }}-${{ runner.os }}.tar.gz --directory=target/release satori
+        fi
     - name: Upload artifacts
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
