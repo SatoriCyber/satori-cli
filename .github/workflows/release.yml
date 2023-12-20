@@ -19,6 +19,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
+    - name: Install Rust MacOS
+      run: rustup target add x86_64-apple-darwin
     - name: Build for macOS
       run: cargo build --release --target x86_64-apple-darwin
       env:
