@@ -30,7 +30,7 @@ jobs:
     - name: Create release
       run: |
         if [ "${{ runner.os }}" == "windows-latest" ]; then
-            Compress-Archive -Path target\release\satori -DestinationPath satori-${{ steps.get_version.outputs.version-without-v }}-${{ runner.os }}.zip
+            Compress-Archive -Path target\release\satori.exe -DestinationPath satori-${{ steps.get_version.outputs.version-without-v }}-${{ runner.os }}.zip
         else
             zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-${{ runner.os }}.zip target/release/satori
         fi
