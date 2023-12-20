@@ -68,7 +68,7 @@ fn generate_code_challenge_pair() -> (CodeChallenge, CodeVerifier) {
     // Compute the SHA-256 hash of the code_verifier
     let mut hasher = Sha256::new();
     hasher.update(code_verifier.as_bytes());
-    let code_challenge = general_purpose::URL_SAFE_NO_PAD.encode(&hasher.finalize());
+    let code_challenge = general_purpose::URL_SAFE_NO_PAD.encode(hasher.finalize());
         
     (code_challenge, code_verifier)
 }

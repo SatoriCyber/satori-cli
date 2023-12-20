@@ -23,7 +23,7 @@ pub async fn generate_token_oauth(domain: &str, code: String, code_verifier: Str
 
         handle_status_code(reqwest::StatusCode::CREATED, res.status())?;
     
-    res.json::<OauthResponse>().await.map_err(|err| SatoriError::JsonError(err))
+    res.json::<OauthResponse>().await.map_err(SatoriError::Json)
 
 }
 
@@ -35,7 +35,7 @@ pub async fn get_database_credentials(domain: &str, client_id: &str, jwt: &str, 
         .send().await?;
     
     handle_status_code(reqwest::StatusCode::OK, res.status())?;
-    res.json::<DatabaseCredentials>().await.map_err(|err| SatoriError::JsonError(err))
+    res.json::<DatabaseCredentials>().await.map_err(SatoriError::Json)
 }
 
 pub async fn get_user_info(domain: &str, client_id: &str, jwt: &str) -> Result<UserProfile, SatoriError> {
@@ -46,7 +46,7 @@ pub async fn get_user_info(domain: &str, client_id: &str, jwt: &str) -> Result<U
         .send().await?;
     
     handle_status_code(reqwest::StatusCode::OK, res.status())?;
-    res.json::<UserProfile>().await.map_err(|err| SatoriError::JsonError(err))
+    res.json::<UserProfile>().await.map_err(SatoriError::Json)
 }
 
 
@@ -67,7 +67,7 @@ fn get_headers_no_jwt(client_id: &str) -> HeaderMap {
 fn handle_status_code(expected: reqwest::StatusCode, actual: reqwest::StatusCode) -> Result<(), SatoriError> {
     // Enahnce the error handling
     if expected != actual {
-        return Err(SatoriError::StatusError(actual));
+        return Err(SatoriError::Status(actual));
     }
     Ok(())
 }

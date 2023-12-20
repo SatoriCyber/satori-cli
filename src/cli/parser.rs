@@ -1,5 +1,5 @@
 /// Handle parsing the CLI arguments.
-use std::{io::{self, BufWriter}, fs::File};
+use std::{io::BufWriter, fs::File};
 
 use clap::{command, Arg, ArgAction, value_parser, Command, ArgMatches, arg};
 use clap_complete::{Shell, Generator, generate};
@@ -31,10 +31,10 @@ pub fn parse() -> CliResult {
     }
 }
 
-fn get_domain_from_args<'a>(args: &'a ArgMatches) -> &'a str  {
+fn get_domain_from_args(args: &ArgMatches) -> & str  {
     args.get_one::<String>("domain").unwrap()
 }
-fn get_debug_from_args<'a>(args: &ArgMatches) -> bool {
+fn get_debug_from_args(args: &ArgMatches) -> bool {
     args.get_flag("debug")
 }
 
@@ -82,10 +82,6 @@ fn get_auto_complete() -> Arg {
 }
 
 
-fn print_completions<G: Generator>(gen: G, cmd: &mut Command) {
-    generate(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
-}
-
 fn completions_to_file<G: Generator>(gen: G, cmd: &mut Command, file: &mut BufWriter<File>) {
     generate(gen, cmd, cmd.get_name().to_string(), file);
 }
@@ -100,4 +96,6 @@ pub struct CliResult {
 #[derive(Debug)]
 pub enum Flow {
     Login(Login),
+    #[allow(dead_code)]
+    Connect
 }
