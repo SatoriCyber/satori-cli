@@ -1,3 +1,3 @@
-pub mod parser;
 mod connect;
 mod login;
+pub mod parser;
