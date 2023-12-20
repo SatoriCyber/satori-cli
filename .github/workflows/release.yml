@@ -17,7 +17,7 @@ jobs:
     strategy:
         fail-fast: false
         matrix:
-          os: [macos-latest]
+          os: [macos-latest, ubuntu-latest, windows-latest]
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -29,8 +29,8 @@ jobs:
       uses: battila7/get-version-action@v2
     - name: Create release
       run: |
-        zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-${{matrix.os}}.zip target/release/satori
-        tar czf satori-${{ steps.get_version.outputs.version-without-v }}-${{matrix.os}}.tar.gz --directory=target/release satori
+        zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-${{matrix.os.name}}.zip target/release/satori
+        tar czf satori-${{ steps.get_version.outputs.version-without-v }}-${{matrix.os.name}}.tar.gz --directory=target/release satori
     - name: Upload artifacts
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
