@@ -24,17 +24,18 @@ jobs:
       env:
         CARGO_TERM_COLOR: always
 
-    - name: Create release
+    - name: Create release linux
       run: |
-        zip -r my_project.zip target/release/my_project
-        tar czf my_project.tar.gz target/release/my_project
+        zip -r satori.zip target/release/satori
+        tar czf satori.tar.gz target/release/satori
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+    - id: get_version
+      uses: battila7/get-version-action@v2    
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: my_project
         path: |
-          my_project.zip
-          my_project.tar.gz
+          satori-${{ steps.get_version.outputs.version-without-v }}-${{ runner.os }}-$(uname -m).zip
+          satori-${{ steps.get_version.outputs.version-without-v }}-${{ runner.os }}-$(uname -m).tar.gz
