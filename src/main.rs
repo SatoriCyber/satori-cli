@@ -13,6 +13,7 @@ async fn main() {
     log::debug!("running satori cli with parameters: {:?}", cli_results);
     match cli_results.flow {
         Some(cli::parser::Flow::Login(params)) => {login::run(params).await.unwrap();}
+        Some(cli::parser::Flow::Connect) => unimplemented!(),
         _ => ()
     };
 }

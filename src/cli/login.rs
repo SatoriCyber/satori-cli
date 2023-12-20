@@ -9,13 +9,14 @@ pub enum CliCredentialsFormat {
     Csv
 }
 
-impl Into<CredentialsFormat> for CliCredentialsFormat {
-    fn into(self) -> CredentialsFormat {
-        match self {
+impl From<CliCredentialsFormat> for CredentialsFormat {
+    fn from(value: CliCredentialsFormat) -> Self {
+        match value {
             CliCredentialsFormat::Json => CredentialsFormat::Json,
             CliCredentialsFormat::Yaml => CredentialsFormat::Yaml,
             CliCredentialsFormat::Csv => CredentialsFormat::Csv
         }
+    
     }
 }
 
