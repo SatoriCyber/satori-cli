@@ -12,32 +12,31 @@ on:
   
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
-
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+        fail-fast: false
+        matrix:
+          os: [macos-latest]
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Install Rust MacOS
-      run: rustup target add x86_64-apple-darwin
-    - name: Build for macOS
-      run: cargo build --release --target x86_64-apple-darwin
+    - name: Build
+      run: cargo build --release --bin satori
       env:
         CARGO_TERM_COLOR: always
     - id: get_version
-      uses: battila7/get-version-action@v2  
+      uses: battila7/get-version-action@v2
     - name: Create release linux
       run: |
-        zip -r satori-${{ steps.get_version.outputs.version-without-v }}-x86_64-apple-darwin.zip target/x86_64-apple-darwin/satori
-        tar czf satori-${{ steps.get_version.outputs.version-without-v }}-x86_64-apple-darwin.tar.gz target/x86_64-apple-darwin/satori
+        zip -r satori-${{ steps.get_version.outputs.version-without-v }}-${{matrix.os}}.zip target/release/satori
+        tar czf satori-${{ steps.get_version.outputs.version-without-v }}-${{matrix.os}}.tar.gz target/release/satori
+    - name: Upload artifacts
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
-    - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: satori-cli
         path: |
           ./**/*.tar.gz
-          ./**/*.zip
+          ./**/*.zip        
