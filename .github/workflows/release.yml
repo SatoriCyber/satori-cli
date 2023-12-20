@@ -20,23 +20,23 @@ jobs:
           os: [macos-latest]
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Build
       run: cargo build --release --bin satori
       env:
         CARGO_TERM_COLOR: always
     - id: get_version
       uses: battila7/get-version-action@v2
-    - name: Create release linux
+    - name: Create release
       run: |
         zip -r satori-${{ steps.get_version.outputs.version-without-v }}-${{matrix.os}}.zip target/release/satori
         tar czf satori-${{ steps.get_version.outputs.version-without-v }}-${{matrix.os}}.tar.gz target/release/satori
     - name: Upload artifacts
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      uses: actions/upload-artifact@v2
+      uses: softprops/action-gh-release@v1
       with:
-        name: satori-cli
-        path: |
+        files: |
           ./**/*.tar.gz
-          ./**/*.zip        
+          ./**/*.zip
+
