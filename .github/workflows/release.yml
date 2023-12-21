@@ -12,32 +12,21 @@ on:
   
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-        fail-fast: false
-        matrix:
-          os: [macos-latest, ubuntu-latest, windows-latest]
+  build-linux:
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-    - name: Build
+    - name: Build linux
       run: cargo build --release --bin satori
       env:
-        CARGO_TERM_COLOR: always
+        CARGO_TERM_COLOR: always        
     - id: get_version
       uses: battila7/get-version-action@v2
     - name: Create release
       run: |
-        if [ "${{ runner.os }}" == "Windows" ]; then
-            Compress-Archive -Path target\release\satori.exe -DestinationPath satori-${{ steps.get_version.outputs.version-without-v }}-${{ runner.os }}.zip
-        else
-            zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-${{ runner.os }}.zip target/release/satori
-        fi
-
-        if [ "${{ runner.os }}" != "Windows" ]; then
-            tar czf satori-${{ steps.get_version.outputs.version-without-v }}-${{ runner.os }}.tar.gz --directory=target/release satori
-        fi
+        zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-linux.zip target/release/satori
+        tar czf satori-${{ steps.get_version.outputs.version-without-v }}-linux.tar.gz --directory=target/release satori
     - name: Upload artifacts
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -46,4 +35,53 @@ jobs:
         files: |
           ./**/*.tar.gz
           ./**/*.zip
-
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: rustup
+        run: |
+            rustup target add x86_64-apple-darwin
+      - name: Build linux
+        run: cargo build --release --bin satori
+        env:
+            CARGO_TERM_COLOR: always        
+      - id: get_version
+        uses: battila7/get-version-action@v2
+      - name: Create release
+        run: |
+            Compress-Archive -Path "target\release\satori.exe" -DestinationPath "satori-${{ steps.get_version.outputs.version-without-v }}-windows.zip"
+      - name: Upload artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ./**/*.zip
+  build-macOS:
+      runs-on: macos-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+        - name: rustup
+          run: |
+            rustup target add x86_64-apple-darwin
+        - name: Build linux
+          run: cargo build --release --bin satori
+          env:
+            CARGO_TERM_COLOR: always        
+        - id: get_version
+          uses: battila7/get-version-action@v2
+        - name: Create release
+          run: |
+              zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-linux.zip target/release/satori
+              tar czf satori-${{ steps.get_version.outputs.version-without-v }}-linux.tar.gz --directory=target/release satori
+        - name: Upload artifacts
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          uses: softprops/action-gh-release@v1
+          with:
+            files: |
+              ./**/*.tar.gz
+              ./**/*.zip
