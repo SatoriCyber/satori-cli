@@ -17,10 +17,20 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+    - name: Set up GPG
+      run: |
+        echo "$GPG_PRIVATE_KEY" | gpg --import
+        gpg --list-secret-keys --keyid-format LONG
+        gpg --list-keys
+      env:
+        GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}      
     - name: Build linux
       run: cargo build --release --bin satori
       env:
         CARGO_TERM_COLOR: always        
+    - name: Sign Binary
+      run: |
+        gpg --detach-sign -u devops@satoricyber.com -o satori.sig target/release/satori       
     - id: get_version
       uses: battila7/get-version-action@v2
     - name: Create release
