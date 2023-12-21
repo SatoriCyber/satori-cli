@@ -34,11 +34,9 @@ impl LoginBuilder {
     fn default_file_path(&self) -> Result<String, String> {
         let os = env::consts::OS;
         match os {
-            "windows" => {
-                match env::var("USERPROFILE") {
-                    Ok(user_profile) => Ok(format!(r"{}\satori\credentials.json", user_profile)),
-                    Err(_) => Err("Failed to get USERPROFILE environment variable.".to_owned()),
-                }                
+            "windows" => match env::var("USERPROFILE") {
+                Ok(user_profile) => Ok(format!(r"{}\satori\credentials.json", user_profile)),
+                Err(_) => Err("Failed to get USERPROFILE environment variable.".to_owned()),
             },
             _ => Ok("~/.satori/credentials.json".to_owned()),
         }
