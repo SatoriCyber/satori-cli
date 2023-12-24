@@ -66,7 +66,7 @@ fn handle_auto_complete(generator: Shell) {
 
 fn get_cmd() -> Command {
     command!("satori")
-        .arg(arg!(--domain <VALUE> "Oauth domain").default_value("https://www.satoricyber.com"))
+        .arg(arg!(--domain <VALUE> "Oauth domain").default_value("https://app.satoricyber.com"))
         .arg(arg!(--debug "Enable debug mode"))
         .arg(get_auto_complete())
         .subcommand(connect::get_command())

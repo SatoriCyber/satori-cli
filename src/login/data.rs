@@ -20,7 +20,7 @@ pub struct Login {
     pub write_to_file: bool,
     #[builder(default = "self.default_file_path()?")]
     pub file_path: String,
-    #[builder(default = "String::from(\"https://www.satoricyber.com/\")")]
+    #[builder(default = "String::from(\"https://app.satoricyber.com/\")")]
     pub domain: String,
     #[builder(default = "0")]
     pub port: u16,
