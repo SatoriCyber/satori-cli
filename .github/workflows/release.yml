@@ -107,9 +107,8 @@ jobs:
           uses: mislav/bump-homebrew-formula-action@v3
           with:
             formula-name: satori_cli
-            formula-path: SatoriCliFormula/satori_cli.rb
+            formula-path: Formula/satori_cli.rb
             download-url: https://github.com/SatoriCyber/satori-cli/releases/download/v${{ steps.get_version.outputs.version-without-v }}/satori-${{ steps.get_version.outputs.version-without-v }}-macOS.tar.gz
             homebrew-tap: SatoriCyber/homebrew-satori
-            push-to: https://github.com/SatoriCyber/homebrew-satori.git
           env:
             COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}            
