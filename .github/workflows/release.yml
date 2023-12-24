@@ -30,7 +30,7 @@ jobs:
         CARGO_TERM_COLOR: always        
     - name: Sign Binary
       run: |
-        gpg --detach-sign -u devops@satoricyber.com -o satori.sig target/release/satori       
+        echo "$GPG_PASSPHRASE" | gpg --batch --pinentry-mode loopback --passphrase-fd 0 --detach-sign -u devops@satoricyber.com -o gpg.sig target/release/satori    
     - id: get_version
       uses: battila7/get-version-action@v2
     - name: Create release
@@ -45,6 +45,7 @@ jobs:
         files: |
           ./**/*.tar.gz
           ./**/*.zip
+          gpg.sig
   build-windows:
     runs-on: windows-latest
     steps:
