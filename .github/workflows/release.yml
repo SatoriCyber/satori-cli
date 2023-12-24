@@ -30,7 +30,7 @@ jobs:
         CARGO_TERM_COLOR: always        
     - name: Sign Binary
       run: |
-        echo "$GPG_PASSPHRASE" | gpg --batch --pinentry-mode loopback --passphrase-fd 0 --detach-sign -u devops@satoricyber.com --output gpg.sig target/release/satori    
+        echo "$GPG_PRIVATE_KEY" | gpg --batch --pinentry-mode loopback --passphrase-fd 0 --detach-sign -u devops@satoricyber.com --output gpg.sig target/release/satori    
       env:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
     - id: get_version
