@@ -31,6 +31,8 @@ jobs:
     - name: Sign Binary
       run: |
         echo "$GPG_PASSPHRASE" | gpg --batch --pinentry-mode loopback --passphrase-fd 0 --detach-sign -u devops@satoricyber.com --output gpg.sig target/release/satori    
+      env:
+        GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
     - id: get_version
       uses: battila7/get-version-action@v2
     - name: Create release
