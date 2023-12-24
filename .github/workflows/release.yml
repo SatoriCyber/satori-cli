@@ -24,7 +24,7 @@ jobs:
         gpg --list-keys
       env:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}      
-    - name: Build linux
+    - name: Build
       run: cargo build --release --bin satori
       env:
         CARGO_TERM_COLOR: always        
@@ -61,7 +61,7 @@ jobs:
       - name: rustup
         run: |
             rustup target add x86_64-apple-darwin
-      - name: Build linux
+      - name: Build
         run: cargo build --release --bin satori
         env:
             CARGO_TERM_COLOR: always        
@@ -85,7 +85,7 @@ jobs:
         - name: rustup
           run: |
             rustup target add x86_64-apple-darwin
-        - name: Build linux
+        - name: Build
           run: cargo build --release --bin satori
           env:
             CARGO_TERM_COLOR: always        
@@ -108,7 +108,7 @@ jobs:
           with:
             formula-name: satori_cli
             formula-path: SatoriCliFormula/satori_cli.rb
-            download-url: https://github.com/SatoriCyber/satori-cli/releases/tag//satori-${{ steps.get_version.outputs.version-without-v }}-macOS.tar.gz
+            download-url: https://github.com/SatoriCyber/satori-cli/releases/tag/${{ github.event.release.tag_name }}"/satori-${{ steps.get_version.outputs.version-without-v }}-macOS.tar.gz
             homebrew-tap: SatoriCyber/satori
             push-to: https://github.com/SatoriCyber/homebrew-satori.git
           env:
