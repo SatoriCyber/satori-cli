@@ -111,5 +111,5 @@ jobs:
             download-url: https://github.com/SatoriCyber/satori-cli/releases/tag//satori-${{ steps.get_version.outputs.version-without-v }}-macOS.tar.gz
             homebrew-tap: SatoriCyber/satori
             push-to: https://github.com/SatoriCyber/homebrew-satori.git
-        env:
-          COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}            
+          env:
+            COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}            
