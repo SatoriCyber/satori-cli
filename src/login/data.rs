@@ -1,4 +1,4 @@
-use std::{env, sync::OnceLock};
+use std::{path::PathBuf, sync::OnceLock};
 
 use derive_builder::Builder;
 
@@ -19,7 +19,7 @@ pub struct Login {
     #[builder(default = "true")]
     pub write_to_file: bool,
     #[builder(default = "self.default_file_path()?")]
-    pub file_path: String,
+    pub file_path: PathBuf,
     #[builder(default = "String::from(\"https://app.satoricyber.com/\")")]
     pub domain: String,
     #[builder(default = "0")]
@@ -31,15 +31,11 @@ pub struct Login {
 }
 
 impl LoginBuilder {
-    fn default_file_path(&self) -> Result<String, String> {
-        let os = env::consts::OS;
-        match os {
-            "windows" => match env::var("USERPROFILE") {
-                Ok(user_profile) => Ok(format!(r"{}\satori\credentials.json", user_profile)),
-                Err(_) => Err("Failed to get USERPROFILE environment variable.".to_owned()),
-            },
-            _ => Ok("~/.satori/credentials.json".to_owned()),
-        }
+    fn default_file_path(&self) -> Result<PathBuf, String> {
+        Ok(homedir::get_my_home()
+            .map_err(|err| err.to_string())?
+            .ok_or_else(|| "Failed to get home directory".to_owned())?
+            .join(".satori/credentials.json"))
     }
 }
 

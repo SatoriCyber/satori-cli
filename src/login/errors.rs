@@ -1,9 +1,17 @@
+use std::path::PathBuf;
+
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum LoginError {
     #[error("failed to start web server: {0}")]
     WebServerStartError(#[from] warp::Error),
+    #[error("Failed to create directory for path {1}: {0}")]
+    FailedToCreateDirectories(std::io::Error, PathBuf),
+    #[error("Failed to write to file {1}: {0}")]
+    FailedToWriteToFile(std::io::Error, PathBuf),
+    #[error("Failed to serialize to json: {0}")]
+    SerdeJsonFailure(#[from] serde_json::error::Error),
 }
 
 #[derive(Error, Debug)]
