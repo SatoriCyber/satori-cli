@@ -2,6 +2,8 @@
 name = "satori-cli"
 version = "0.1.0"
 edition = "2021"
+authors = ["Satori <devops@satoricyber.com>"]
+description = "Allow Satori users to obation database crendtials without the need to login to the Satori data portal"
 
 [[bin]]
 name = "satori"
@@ -26,3 +28,6 @@ thiserror = "1.0.51"
 tokio = {version="1.35.0", features = ["full"]}
 warp = "0.3.6"
 webbrowser = "0.8.12"
+
+[build-dependencies]
+cargo-deb = "2.0.2"

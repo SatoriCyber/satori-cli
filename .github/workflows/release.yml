@@ -33,6 +33,9 @@ jobs:
     #     echo "$GPG_PRIVATE_KEY" | gpg --batch --pinentry-mode loopback --passphrase-fd 0 --detach-sign --armor -u devops@satoricyber.com --output gpg.sig target/release/satori    
     #   env:
     #     GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+    - name: build debian package
+      run: |
+        cargo deb
     - id: get_version
       uses: battila7/get-version-action@v2
     - name: Create release
@@ -48,6 +51,7 @@ jobs:
           ./**/*.tar.gz
           ./**/*.zip
           gpg.sig
+
   build-windows:
     runs-on: windows-latest
     steps:
