@@ -108,7 +108,7 @@ jobs:
           with:
             formula-name: satori_cli
             formula-path: SatoriCliFormula/satori_cli.rb
-            download-url: https://github.com/SatoriCyber/satori-cli/releases/tag/${{ github.event.release.tag_name }}/satori-${{ steps.get_version.outputs.version-without-v }}-macOS.tar.gz
+            download-url: https://github.com/SatoriCyber/satori-cli/releases/tag/v${{ steps.get_version.outputs.version-without-v }}/satori-${{ steps.get_version.outputs.version-without-v }}-macOS.tar.gz
             homebrew-tap: SatoriCyber/satori
             push-to: https://github.com/SatoriCyber/homebrew-satori.git
           env:
