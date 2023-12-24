@@ -71,6 +71,7 @@ fn get_cmd() -> Command {
         .arg(get_auto_complete())
         .subcommand(connect::get_command())
         .subcommand(login::get_command())
+        .arg_required_else_help(true)
 }
 
 fn get_auto_complete() -> Arg {
