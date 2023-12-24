@@ -1,5 +1,7 @@
+use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
+use std::{fs, io};
 
 use base64::engine::general_purpose;
 /// Handle the login to Satori
@@ -44,7 +46,7 @@ pub async fn run(params: Login) -> Result<DatabaseCredentials, errors::LoginErro
     }
 
     while JWT.get().is_none() {
-        // Add debug log
+        log::debug!("Waiting for JWT to be set");
         sleep(Duration::from_secs(1));
     }
     let jwt = JWT.get().unwrap().clone();
@@ -55,7 +57,18 @@ pub async fn run(params: Login) -> Result<DatabaseCredentials, errors::LoginErro
         satori_console::get_database_credentials(&params.domain, CLIENT_ID, &jwt, &user_info.id)
             .await
             .unwrap();
-    if !params.write_to_file {
+
+    if params.write_to_file {
+        let file_path = Path::new(&params.file_path);
+        // Create directories for the file
+        create_directories_for_file(file_path).map_err(|err| {
+            errors::LoginError::FailedToCreateDirectories(err, params.file_path.clone())
+        })?;
+        let cred_string = serde_json::to_vec_pretty(&database_credentials)?;
+        fs::write(file_path, cred_string.as_slice()).map_err(|err| {
+            errors::LoginError::FailedToWriteToFile(err, params.file_path.clone())
+        })?;
+    } else {
         log::info!(
             "{}",
             credentials_as_string(&database_credentials, params.format)
@@ -120,4 +133,11 @@ pub fn credentials_as_string(
         CredentialsFormat::Json => serde_json::to_string(credentials).unwrap(),
         CredentialsFormat::Yaml => serde_yaml::to_string(credentials).unwrap(),
     }
+}
+
+fn create_directories_for_file(file_path: &Path) -> io::Result<()> {
+    if let Some(parent) = file_path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+    Ok(())
 }
