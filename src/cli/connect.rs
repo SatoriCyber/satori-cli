@@ -14,14 +14,14 @@ struct Tools {
 #[derive(Deserialize, Clone)]
 struct Tool {
     name: String,
-    require:Option<ToolRequire>
+    require: Option<ToolRequire>,
 }
 
 #[derive(Deserialize, Clone)]
-struct ToolRequire{
+struct ToolRequire {
     long: String,
     short: char,
-    help: String
+    help: String,
 }
 
 fn string_to_static_str(s: String) -> &'static str {
@@ -74,7 +74,12 @@ fn get_tools_args() -> Vec<(&'static str, Option<ToolRequire>)> {
     tools
         .value
         .iter()
-        .map(|tool| (string_to_static_str(tool.name.to_owned()), tool.require.clone()))
+        .map(|tool| {
+            (
+                string_to_static_str(tool.name.to_owned()),
+                tool.require.clone(),
+            )
+        })
         .collect()
 }
 
