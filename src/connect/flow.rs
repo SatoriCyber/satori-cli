@@ -31,6 +31,7 @@ pub async fn run(params: Connect) -> Result<(), errors::ConnectError> {
                     host => params.address,
                     user => credentials.username,
                     password => credentials.password,
+                    database => params.database,
                 })
                 .unwrap();
             (name.clone(), env_string)
@@ -66,6 +67,7 @@ fn get_args_from_env(
         host => params.address,
         user => credentials.username,
         password => credentials.password,
+        database => params.database,
     })
     .expect("Failed to render tools template")
 }

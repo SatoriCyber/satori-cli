@@ -68,6 +68,8 @@ fn build_connect_from_args(args: &ArgMatches, domain: String) -> Option<Flow> {
     let connect_builder = connect_builder.tool(tool_name);
     let address = args.get_one::<String>("address").unwrap().to_owned();
     let connect_builder = connect_builder.address(address);
+    let database = args.get_one::<String>("database").cloned();
+    let connect_builder = connect_builder.database(database);
     let additional_args = if let Some(add_args) = args.get_many::<String>("additional_args") {
         add_args.cloned().collect::<Vec<String>>()
     } else {

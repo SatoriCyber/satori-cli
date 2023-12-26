@@ -26,6 +26,7 @@ The entry should contain the following fields:
 - `command` - the command to invoke the tool
 - `arguments` - the arguments to pass to the tool
 - `env` - which environment variables to pass to the tool
+- `requires` - other parameters that are required to be passed to the tool, for example -d database for psql.
 
 **Parameters**:
 - `{{host}}` - the datastore host
