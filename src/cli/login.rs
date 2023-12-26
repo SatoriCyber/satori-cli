@@ -1,6 +1,8 @@
-use clap::{arg, value_parser, Arg, ArgAction, Command, ValueEnum};
+use clap::{arg, value_parser, Command, ValueEnum};
 
 use crate::login::data::CredentialsFormat;
+
+use super::common;
 
 #[derive(Copy, Clone, ValueEnum)]
 pub enum CliCredentialsFormat {
@@ -20,14 +22,12 @@ impl From<CliCredentialsFormat> for CredentialsFormat {
 }
 
 pub fn get_command() -> Command {
-    Command::new("login").about("Login to Satori").args(vec![
+    let mut args = vec![
         arg!(-d --display  "Display the credentials or save to file"),
         arg!(-f --format <FORMAT>)
             .value_parser(value_parser!(CliCredentialsFormat))
             .default_value("csv"),
-        Arg::new("no-launch-browser")
-            .long("no-launch-browser")
-            .help("Don't launch the browser")
-            .action(ArgAction::SetTrue),
-    ])
+    ];
+    args.extend(common::get_common_args());
+    Command::new("login").about("Login to Satori").args(args)
 }

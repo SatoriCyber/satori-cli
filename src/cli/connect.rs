@@ -1,7 +1,9 @@
-use clap::{Arg, Command};
+use clap::{arg, Arg, ArgAction, Command};
 use serde::Deserialize;
 
-const TOOLS_DATA: &str = include_str!("../../configurations/tools.yaml");
+use super::common;
+
+use crate::helpers::tools::TOOLS_DATA;
 
 #[derive(Deserialize, Clone)]
 #[serde(transparent)]
@@ -12,8 +14,6 @@ struct Tools {
 #[derive(Deserialize, Clone)]
 struct Tool {
     name: String,
-    // command_name: String,
-    // command: String
 }
 
 fn string_to_static_str(s: String) -> &'static str {
@@ -21,14 +21,36 @@ fn string_to_static_str(s: String) -> &'static str {
 }
 
 pub fn get_command() -> Command {
+    let mut args = vec![
+        Arg::new("tool")
+            .value_parser(get_tools_name())
+            .required(true)
+            .help("Tool to connect"),
+        arg!( [address] "address")
+            .required(true)
+            .help("Satori datastore Host to connect"),
+        Arg::new("no-persist")
+            .long("no-persist")
+            .help("Don't persist the credentials")
+            .action(ArgAction::SetTrue),
+        Arg::new("additional_args")
+            .trailing_var_arg(true)
+            .allow_hyphen_values(true)
+            .action(ArgAction::Append),
+    ];
+    args.extend(common::get_common_args());
+    Command::new("connect")
+        .about("Connect to a tool")
+        .args(args)
+}
+
+fn get_tools_name() -> Vec<&'static str> {
     let tools = serde_yaml::from_str::<Tools>(TOOLS_DATA).unwrap();
-    let tools_name = tools
+    tools
         .value
         .iter()
         .map(|tool| string_to_static_str(tool.name.to_owned()))
-        .collect::<Vec<&'static str>>();
-    let arg = Arg::new("tool").value_parser(tools_name);
-    Command::new("connect").about("Connect to a tool").arg(arg)
+        .collect::<Vec<&'static str>>()
 }
 
 #[cfg(test)]
