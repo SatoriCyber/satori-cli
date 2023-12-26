@@ -10,6 +10,7 @@ pub struct Connect {
     pub login: Login,
     pub address: String,
     pub additional_args: Vec<String>,
+    pub database: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Clone)]

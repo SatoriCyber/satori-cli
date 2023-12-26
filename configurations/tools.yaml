@@ -1,8 +1,12 @@
 - name: psql
+  require:
+    long: database
+    short: d
+    help: Database name
   command: psql
   env:
     - name: PGPASSWORD
       value: "{{ password }}"
     - name: PGCHANNELBINDING
       value: disable
-  args: -h {{ host }} -U {{ user }}
+  args: -h {{ host }} -U {{ user }} -d {{ database }}

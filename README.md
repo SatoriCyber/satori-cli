@@ -34,13 +34,24 @@ If the credentials already exist, loads from the cache, if not invoke authentica
 #### Arguments:
  - `--no-persist` - do not persist the credentials to the cache
  - `--no-launch-browser` - Do not launch the browser to authenticate, instead print the URL to the terminal. 
+ -  `<address>` - The datastore host to connect to.
+ - `--` - Pass the rest of the arguments to the tool.
 
 #### psql
 Triggers a psql session with the given datastore and database.
+
+**Parameters**:
+ - `-d <database>` - The database to connect to.
+
+**Example**:
 ```bash
 satori connect psql <datastore-host> -d <database>
 ```
 
+Passing additional args to the tool:
+```bash
+satori connect psql <datastore-host> -d <database> -- -c 'select 1'
+```
 
 ### Login
 Obtain credentials from Satori data portal without the need to use a browser.
