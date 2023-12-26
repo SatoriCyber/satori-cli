@@ -19,8 +19,7 @@ struct Tool {
 
 #[derive(Deserialize, Clone)]
 struct ToolRequire {
-    long: String,
-    short: char,
+    name: String,
     help: String,
 }
 
@@ -43,26 +42,24 @@ pub fn get_command() -> Command {
             .long("no-persist")
             .help("Don't persist the credentials")
             .action(ArgAction::SetTrue),
-        Arg::new("additional_args")
-            .trailing_var_arg(true)
-            .allow_hyphen_values(true)
-            .action(ArgAction::Append),
     ];
     for (tool_name, tool_args) in tools_data {
         if let Some(tool_args) = tool_args {
-            let long = string_to_static_str(tool_args.long);
+            let name = string_to_static_str(tool_args.name);
             let help = string_to_static_str(tool_args.help);
 
             args.push(
-                Arg::new(long)
-                    .long(long)
-                    .short(tool_args.short)
+                Arg::new(name)
                     .help(help)
-                    .value_name(long)
+                    .value_name(name)
                     .required_if_eq("tool", tool_name),
             );
         }
     }
+    args.push(Arg::new("additional_args")
+    .trailing_var_arg(true)
+    .allow_hyphen_values(true)
+    .action(ArgAction::Append));
     args.extend(common::get_common_args());
     Command::new("connect")
         .about("Connect to a tool")
