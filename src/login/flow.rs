@@ -23,9 +23,38 @@ const OAUTH_URI: &str = "oauth/authorize";
 type CodeChallenge = String;
 type CodeVerifier = String;
 
+/// Try to load the config from file, if it fails triggers the login flow
+pub async fn get_creds_with_file(
+    params: &Login,
+) -> Result<DatabaseCredentials, errors::LoginError> {
+    let file_path = Path::new(&params.file_path);
+    let credentials = match fs::read_to_string(file_path) {
+        Ok(cred_string) => {
+            log::debug!("Successfully read file: {:?}", file_path);
+            serde_json::from_str::<DatabaseCredentials>(&cred_string)
+                .map_err(|err| {
+                    log::warn!("Failed to parse credentials: {}, generating new.", err);
+                })
+                .ok()
+                .filter(|credentials| !credentials.expires_soon())
+        }
+        Err(err) => {
+            log::debug!("Failed to read file: {}", err);
+            None
+        }
+    };
+    log::debug!("credentials: {:?}", credentials);
+    if let Some(credentials) = credentials {
+        Ok(credentials)
+    } else {
+        log::debug!("Failed to read credentials from file, starting login flow");
+        run(params).await
+    }
+}
+
 /// Login to Satori, save the JWT, returns the credentials
 /// Write to file if it is part of the parameters
-pub async fn run(params: Login) -> Result<DatabaseCredentials, errors::LoginError> {
+pub async fn run(params: &Login) -> Result<DatabaseCredentials, errors::LoginError> {
     let addr = web_server::start(params.port, params.domain.clone()).await?;
 
     let (code_challenge, code_verifier) = generate_code_challenge_pair();
@@ -71,7 +100,7 @@ pub async fn run(params: Login) -> Result<DatabaseCredentials, errors::LoginErro
     } else {
         log::info!(
             "{}",
-            credentials_as_string(&database_credentials, params.format)
+            credentials_as_string(&database_credentials, &params.format)
         );
     }
     Ok(database_credentials)
@@ -123,12 +152,12 @@ fn build_oauth_uri(
 
 pub fn credentials_as_string(
     credentials: &DatabaseCredentials,
-    format: CredentialsFormat,
+    format: &CredentialsFormat,
 ) -> String {
     match format {
         CredentialsFormat::Csv => format!(
             "{},{},{}",
-            credentials.username, credentials.password, credentials.expired_at
+            credentials.username, credentials.password, credentials.expires_at
         ),
         CredentialsFormat::Json => serde_json::to_string(credentials).unwrap(),
         CredentialsFormat::Yaml => serde_yaml::to_string(credentials).unwrap(),

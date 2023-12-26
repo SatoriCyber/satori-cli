@@ -1,3 +1,8 @@
 - name: psql
-  command_name: psql
-  command: psql -h {{ host }} -U {{ user }} -W {{ password }}
+  command: psql
+  env:
+    - name: PGPASSWORD
+      value: "{{ password }}"
+    - name: PGCHANNELBINDING
+      value: disable
+  args: -h {{ host }} -U {{ user }}

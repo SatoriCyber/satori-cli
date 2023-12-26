@@ -4,7 +4,10 @@ use std::{fs::File, io::BufWriter};
 use clap::{arg, command, value_parser, Arg, ArgAction, ArgMatches, Command};
 use clap_complete::{generate, Generator, Shell};
 
-use crate::login::{Login, LoginBuilder};
+use crate::{
+    connect::{Connect, ConnectBuilder},
+    login::{Login, LoginBuilder},
+};
 
 use super::{
     connect,
@@ -22,6 +25,8 @@ pub fn parse() -> CliResult {
     let mut flow = None;
     if let Some(args) = matches.subcommand_matches("login") {
         flow = build_login_from_args(args, domain.to_owned());
+    } else if let Some(args) = matches.subcommand_matches("connect") {
+        flow = build_connect_from_args(args, domain.to_owned());
     } else if let Some(generator) = matches.get_one::<Shell>("generator").copied() {
         handle_auto_complete(generator);
     }
@@ -36,14 +41,9 @@ fn get_debug_from_args(args: &ArgMatches) -> bool {
 }
 
 fn build_login_from_args(args: &ArgMatches, domain: String) -> Option<Flow> {
-    let login_builder = LoginBuilder::default().domain(domain);
+    let login_builder = build_login_common_args(args, domain);
     let login_builder = if args.get_flag("display") {
         login_builder.write_to_file(false)
-    } else {
-        login_builder
-    };
-    let login_builder = if args.get_flag("no-launch-browser") {
-        login_builder.open_browser(false)
     } else {
         login_builder
     };
@@ -53,6 +53,38 @@ fn build_login_from_args(args: &ArgMatches, domain: String) -> Option<Flow> {
         login_builder
     };
     Some(Flow::Login(login_builder.build().unwrap()))
+}
+
+fn build_connect_from_args(args: &ArgMatches, domain: String) -> Option<Flow> {
+    let connect_builder = ConnectBuilder::default();
+    let login_builder = build_login_common_args(args, domain);
+    let login = if args.get_flag("no-persist") {
+        login_builder.write_to_file(false)
+    } else {
+        login_builder
+    };
+    let connect_builder = connect_builder.login(login.build().unwrap());
+    let tool_name = args.get_one::<String>("tool").unwrap().to_owned();
+    let connect_builder = connect_builder.tool(tool_name);
+    let address = args.get_one::<String>("address").unwrap().to_owned();
+    let connect_builder = connect_builder.address(address);
+    let additional_args = if let Some(add_args) = args.get_many::<String>("additional_args") {
+        add_args.cloned().collect::<Vec<String>>()
+    } else {
+        vec![]
+    };
+    let connect_builder = connect_builder.additional_args(additional_args);
+    Some(Flow::Connect(connect_builder.build().unwrap()))
+}
+
+/// Set the login builder only with the common args
+fn build_login_common_args(args: &ArgMatches, domain: String) -> LoginBuilder {
+    let login_builder = LoginBuilder::default().domain(domain);
+    if args.get_flag("no-launch-browser") {
+        login_builder.open_browser(false)
+    } else {
+        login_builder
+    }
 }
 
 fn handle_auto_complete(generator: Shell) {
@@ -96,6 +128,5 @@ pub struct CliResult {
 #[derive(Debug)]
 pub enum Flow {
     Login(Login),
-    #[allow(dead_code)]
-    Connect,
+    Connect(Connect),
 }
