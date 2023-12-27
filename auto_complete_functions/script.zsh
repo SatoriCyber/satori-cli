@@ -6,7 +6,7 @@ _datastores() {
     # Read keys line by line and populate the array
     while IFS= read -r line; do
         datastore_names+=("$line")
-    done < <(./satori list --datastores)
+    done < <(satori list --datastores)
 
     _values datastore_name $datastore_names
 }
@@ -18,6 +18,6 @@ _databases() {
     local databases=()
     while IFS= read -r line; do
         databases+=("$line")
-    done < <(./satori list --databases $datastore_name)
+    done < <(satori list --databases $datastore_name)
     _values database $databases
 }

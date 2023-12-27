@@ -93,7 +93,8 @@ jobs:
           uses: battila7/get-version-action@v2
         - name: generate autocomlete for zsh
           run: |
-            ./satori auto_complete --generate zsh --out satori_auto_complete.zsh
+            ./target/release/satori auto_complete --generate zsh --out satori_auto_complete.zsh
+            
             sed -i -e "s/^':datastore_name -- The name of the datastore to connect:' \$/':datastore_name -- The name of the datastore to connect:_datastores'/g" \
             -e "s/^'::database -- Database name:' \$/::database -- Database name:_databases/g" \
             satori_auto_complete.zsh
