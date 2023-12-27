@@ -1,4 +1,4 @@
-use std::{path::PathBuf, sync::OnceLock};
+use std::sync::OnceLock;
 
 use derive_builder::Builder;
 
@@ -18,8 +18,6 @@ pub(super) static JWT: OnceLock<Jwt> = OnceLock::new();
 pub struct Login {
     #[builder(default = "true")]
     pub write_to_file: bool,
-    #[builder(default = "self.default_file_path()?")]
-    pub file_path: PathBuf,
     #[builder(default = "String::from(\"https://app.satoricyber.com/\")")]
     pub domain: String,
     #[builder(default = "0")]
@@ -28,15 +26,6 @@ pub struct Login {
     pub open_browser: bool,
     #[builder(default = "CredentialsFormat::Csv")]
     pub format: CredentialsFormat,
-}
-
-impl LoginBuilder {
-    fn default_file_path(&self) -> Result<PathBuf, String> {
-        Ok(homedir::get_my_home()
-            .map_err(|err| err.to_string())?
-            .ok_or_else(|| "Failed to get home directory".to_owned())?
-            .join(".satori/credentials.json"))
-    }
 }
 
 #[derive(Debug)]

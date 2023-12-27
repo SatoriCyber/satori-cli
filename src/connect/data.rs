@@ -8,7 +8,7 @@ use crate::login::Login;
 pub struct Connect {
     pub tool: String,
     pub login: Login,
-    pub address: String,
+    pub datastore_name: String,
     pub additional_args: Vec<String>,
     pub database: Option<String>,
 }
@@ -34,3 +34,4 @@ pub struct EnvTool {
     pub name: String,
     pub value: String,
 }
+

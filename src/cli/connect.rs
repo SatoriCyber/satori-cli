@@ -35,9 +35,9 @@ pub fn get_command() -> Command {
             .value_parser(tools_name)
             .required(true)
             .help("Tool to connect"),
-        arg!( [address] "address")
+        arg!( [datastore_name] "datastore name")
             .required(true)
-            .help("Satori datastore Host to connect"),
+            .help("The name of the datastore to connect"),
         Arg::new("no-persist")
             .long("no-persist")
             .help("Don't persist the credentials")
