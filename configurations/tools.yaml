@@ -1,7 +1,6 @@
 - name: psql
   require:
-    long: database
-    short: d
+    name: database
     help: Database name
   command: psql
   env:

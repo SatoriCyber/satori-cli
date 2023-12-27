@@ -11,6 +11,7 @@ use rand::Rng;
 use reqwest::Url;
 use sha2::{Digest, Sha256};
 
+use crate::helpers::default_app_folder;
 use crate::helpers::satori_console::{self, DatabaseCredentials};
 use crate::login::data::{CODE_VERIFIER, EXPECTED_STATE, JWT};
 use crate::login::web_server;
@@ -19,6 +20,7 @@ use super::data::{CredentialsFormat, Login, CLIENT_ID};
 use super::errors;
 
 const OAUTH_URI: &str = "oauth/authorize";
+const CREDENTIALS_FILE_NAME: &str = "credentials.json";
 
 type CodeChallenge = String;
 type CodeVerifier = String;
@@ -27,8 +29,8 @@ type CodeVerifier = String;
 pub async fn get_creds_with_file(
     params: &Login,
 ) -> Result<DatabaseCredentials, errors::LoginError> {
-    let file_path = Path::new(&params.file_path);
-    let credentials = match fs::read_to_string(file_path) {
+    let file_path = default_app_folder::get()?.join(CREDENTIALS_FILE_NAME);
+    let credentials = match fs::read_to_string(file_path.clone()) {
         Ok(cred_string) => {
             log::debug!("Successfully read file: {:?}", file_path);
             serde_json::from_str::<DatabaseCredentials>(&cred_string)
@@ -88,15 +90,13 @@ pub async fn run(params: &Login) -> Result<DatabaseCredentials, errors::LoginErr
             .unwrap();
 
     if params.write_to_file {
-        let file_path = Path::new(&params.file_path);
+        let file_path = default_app_folder::get()?.join(CREDENTIALS_FILE_NAME);
         // Create directories for the file
-        create_directories_for_file(file_path).map_err(|err| {
-            errors::LoginError::FailedToCreateDirectories(err, params.file_path.clone())
-        })?;
+        create_directories_for_file(&file_path)
+            .map_err(|err| errors::LoginError::FailedToCreateDirectories(err, file_path.clone()))?;
         let cred_string = serde_json::to_vec_pretty(&database_credentials)?;
-        fs::write(file_path, cred_string.as_slice()).map_err(|err| {
-            errors::LoginError::FailedToWriteToFile(err, params.file_path.clone())
-        })?;
+        fs::write(file_path.clone(), cred_string.as_slice())
+            .map_err(|err| errors::LoginError::FailedToWriteToFile(err, file_path.clone()))?;
     } else {
         log::info!(
             "{}",

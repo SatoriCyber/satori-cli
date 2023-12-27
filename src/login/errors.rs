@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use thiserror::Error;
 
+use crate::helpers::default_app_folder::DefaultFolderError;
+
 #[derive(Error, Debug)]
 pub enum LoginError {
     #[error("failed to start web server: {0}")]
@@ -12,6 +14,8 @@ pub enum LoginError {
     FailedToWriteToFile(std::io::Error, PathBuf),
     #[error("Failed to serialize to json: {0}")]
     SerdeJsonFailure(#[from] serde_json::error::Error),
+    #[error("{0}")]
+    HomeFolderError(#[from] DefaultFolderError),
 }
 
 #[derive(Error, Debug)]

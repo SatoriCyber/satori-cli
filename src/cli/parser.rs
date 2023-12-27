@@ -1,11 +1,12 @@
-/// Handle parsing the CLI arguments.
-use std::{fs::File, io::BufWriter};
+use std::path::PathBuf;
 
-use clap::{arg, command, value_parser, Arg, ArgAction, ArgMatches, Command};
-use clap_complete::{generate, Generator, Shell};
+/// Handle parsing the CLI arguments.
+use clap::{arg, command, value_parser, ArgAction, ArgMatches, Command};
+use clap_complete::Shell;
 
 use crate::{
     connect::{Connect, ConnectBuilder},
+    list::List,
     login::{Login, LoginBuilder},
 };
 
@@ -22,14 +23,17 @@ pub fn parse() -> CliResult {
     let domain = get_domain_from_args(&matches);
     let debug = get_debug_from_args(&matches);
 
-    let mut flow = None;
-    if let Some(args) = matches.subcommand_matches("login") {
-        flow = build_login_from_args(args, domain.to_owned());
+    let flow = if let Some(args) = matches.subcommand_matches("login") {
+        build_login_from_args(args, domain.to_owned())
     } else if let Some(args) = matches.subcommand_matches("connect") {
-        flow = build_connect_from_args(args, domain.to_owned());
-    } else if let Some(generator) = matches.get_one::<Shell>("generator").copied() {
-        handle_auto_complete(generator);
-    }
+        build_connect_from_args(args, domain.to_owned())
+    } else if let Some(args) = matches.subcommand_matches("list") {
+        handle_list(args)
+    } else if let Some(args) = matches.subcommand_matches("auto_complete") {
+        handle_auto_complete(args)
+    } else {
+        panic!("No subcommand found")
+    };
     CliResult { flow, debug }
 }
 
@@ -40,7 +44,7 @@ fn get_debug_from_args(args: &ArgMatches) -> bool {
     args.get_flag("debug")
 }
 
-fn build_login_from_args(args: &ArgMatches, domain: String) -> Option<Flow> {
+fn build_login_from_args(args: &ArgMatches, domain: String) -> Flow {
     let login_builder = build_login_common_args(args, domain);
     let login_builder = if args.get_flag("display") {
         login_builder.write_to_file(false)
@@ -52,10 +56,10 @@ fn build_login_from_args(args: &ArgMatches, domain: String) -> Option<Flow> {
     } else {
         login_builder
     };
-    Some(Flow::Login(login_builder.build().unwrap()))
+    Flow::Login(login_builder.build().unwrap())
 }
 
-fn build_connect_from_args(args: &ArgMatches, domain: String) -> Option<Flow> {
+fn build_connect_from_args(args: &ArgMatches, domain: String) -> Flow {
     let connect_builder = ConnectBuilder::default();
     let login_builder = build_login_common_args(args, domain);
     let login = if args.get_flag("no-persist") {
@@ -66,8 +70,8 @@ fn build_connect_from_args(args: &ArgMatches, domain: String) -> Option<Flow> {
     let connect_builder = connect_builder.login(login.build().unwrap());
     let tool_name = args.get_one::<String>("tool").unwrap().to_owned();
     let connect_builder = connect_builder.tool(tool_name);
-    let address = args.get_one::<String>("address").unwrap().to_owned();
-    let connect_builder = connect_builder.address(address);
+    let datastore_name = args.get_one::<String>("datastore_name").unwrap().to_owned();
+    let connect_builder = connect_builder.datastore_name(datastore_name);
     let database = args.get_one::<String>("database").cloned();
     let connect_builder = connect_builder.database(database);
     let additional_args = if let Some(add_args) = args.get_many::<String>("additional_args") {
@@ -76,7 +80,7 @@ fn build_connect_from_args(args: &ArgMatches, domain: String) -> Option<Flow> {
         vec![]
     };
     let connect_builder = connect_builder.additional_args(additional_args);
-    Some(Flow::Connect(connect_builder.build().unwrap()))
+    Flow::Connect(connect_builder.build().unwrap())
 }
 
 /// Set the login builder only with the common args
@@ -89,41 +93,63 @@ fn build_login_common_args(args: &ArgMatches, domain: String) -> LoginBuilder {
     }
 }
 
-fn handle_auto_complete(generator: Shell) {
-    let mut cmd = get_cmd();
-    eprintln!("Generating completion file for {generator}...");
-    let file = File::create("example.txt").unwrap();
-    let mut buf_writer = BufWriter::new(file);
-    completions_to_file(generator, &mut cmd, &mut buf_writer);
-    // print_completions(generator, &mut cmd);
+fn handle_auto_complete(args: &ArgMatches) -> Flow {
+    let shell = args.get_one::<Shell>("generate").unwrap();
+    let out = args.get_one::<PathBuf>("out").unwrap();
+    Flow::AutoComplete(*shell, out.clone())
 }
 
-fn get_cmd() -> Command {
+fn handle_list(args: &ArgMatches) -> Flow {
+    if args.get_flag("datastores") {
+        Flow::List(List::Datastores)
+    } else if let Some(datastore_name) = args.get_one::<String>("databases") {
+        return Flow::List(List::Databases(datastore_name.to_owned()));
+    } else {
+        panic!("No subcommand found")
+    }
+}
+
+pub(super) fn get_cmd() -> Command {
     command!("satori")
         .arg(arg!(--domain <VALUE> "Oauth domain").default_value("https://app.satoricyber.com"))
         .arg(arg!(--debug "Enable debug mode"))
-        .arg(get_auto_complete())
         .subcommand(connect::get_command())
         .subcommand(login::get_command())
+        .subcommand(get_auto_complete())
+        .hide(true)
+        .subcommand(get_list())
+        .hide(true)
         .arg_required_else_help(true)
 }
 
-fn get_auto_complete() -> Arg {
-    Arg::new("generator")
-        .short('g')
-        .long("generate")
-        .action(ArgAction::Set)
-        .value_parser(value_parser!(Shell))
+fn get_auto_complete() -> Command {
+    command!("auto_complete")
+        .about("Generate autocomplete")
+        .hide(true)
+        .args(vec![
+            arg!(--generate <VALUE> "Generate completion file")
+                .action(ArgAction::Set)
+                .value_parser(value_parser!(Shell)),
+            arg!(--out <File> "Output file")
+                .required(true)
+                .value_parser(value_parser!(PathBuf)),
+        ])
 }
 
-fn completions_to_file<G: Generator>(gen: G, cmd: &mut Command, file: &mut BufWriter<File>) {
-    generate(gen, cmd, cmd.get_name().to_string(), file);
+fn get_list() -> Command {
+    command!("list")
+        .about("List resources")
+        .hide(true)
+        .args(vec![
+            arg!(--datastores "Get all available datastores"),
+            arg!(--databases <datastore_name> "List of databases for the datastore"),
+        ])
 }
 
 #[derive(Debug)]
 pub struct CliResult {
     // Shouldn't be an option
-    pub flow: Option<Flow>,
+    pub flow: Flow,
     pub debug: bool,
 }
 
@@ -131,4 +157,6 @@ pub struct CliResult {
 pub enum Flow {
     Login(Login),
     Connect(Connect),
+    AutoComplete(Shell, PathBuf),
+    List(List),
 }
