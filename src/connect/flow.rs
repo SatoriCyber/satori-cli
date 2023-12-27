@@ -1,7 +1,11 @@
 use minijinja::{context, Value};
 
 use crate::{
-    helpers::{satori_console::DatabaseCredentials, tools::TOOLS_DATA, datastores::{self, errors::DatastoresError, DatastoreInfo}},
+    helpers::{
+        datastores::{self, errors::DatastoresError, DatastoreInfo},
+        satori_console::DatabaseCredentials,
+        tools::TOOLS_DATA,
+    },
     login,
 };
 
@@ -12,7 +16,9 @@ const TOOLS_TEMPLATE_NAME: &str = "tools";
 pub async fn run(params: Connect) -> Result<(), errors::ConnectError> {
     let datastore_info_file = match datastores::file::load() {
         Ok(datastore_info) => Some(datastore_info),
-        Err(DatastoresError::HomeFolder(err)) => return Err(errors::ConnectError::HomeFolderError(err)),
+        Err(DatastoresError::HomeFolder(err)) => {
+            return Err(errors::ConnectError::HomeFolderError(err))
+        }
         Err(err) => {
             log::debug!("Failed to load datastore info file: {}", err);
             None
@@ -22,11 +28,12 @@ pub async fn run(params: Connect) -> Result<(), errors::ConnectError> {
         None => {
             unimplemented!("Need to implement the get datastore info from satori console, store to file and use it")
         }
-        Some(datastore_info) => {
-            datastore_info
-        }
+        Some(datastore_info) => datastore_info,
     };
-    let datastore_info = datastores_info.value.get(&params.datastore_name).ok_or_else(|| errors::ConnectError::DatastoreNotFound(params.datastore_name.clone()))?;
+    let datastore_info = datastores_info
+        .value
+        .get(&params.datastore_name)
+        .ok_or_else(|| errors::ConnectError::DatastoreNotFound(params.datastore_name.clone()))?;
 
     let credentials = login::get_creds_with_file(&params.login).await?;
     let tool_data = get_tool_data(&params.tool);
@@ -45,9 +52,7 @@ pub async fn run(params: Connect) -> Result<(), errors::ConnectError> {
             env.add_template(name, value).unwrap();
             let tmpl = env.get_template(name).unwrap();
             let ctx = get_jinja_context(datastore_info, &credentials, &params);
-            let env_string = tmpl
-                .render(ctx)
-                .unwrap();
+            let env_string = tmpl.render(ctx).unwrap();
             (name.clone(), env_string)
         })
         .collect::<Vec<(String, String)>>();
@@ -78,9 +83,8 @@ fn get_args_from_env(
     credentials: &DatabaseCredentials,
 ) -> String {
     let tmpl = env.get_template(TOOLS_TEMPLATE_NAME).unwrap();
-    let ctx = get_jinja_context(datastore_info, &credentials, &params);
-    tmpl.render(ctx)
-    .expect("Failed to render tools template")
+    let ctx = get_jinja_context(datastore_info, credentials, params);
+    tmpl.render(ctx).expect("Failed to render tools template")
 }
 
 fn build_args<'a>(args_string: &'a str, params: &'a Connect) -> Vec<&'a str> {
@@ -89,7 +93,11 @@ fn build_args<'a>(args_string: &'a str, params: &'a Connect) -> Vec<&'a str> {
     args
 }
 
-fn get_jinja_context(datastore_info: &DatastoreInfo, credentials: &DatabaseCredentials, params: &Connect) -> Value {
+fn get_jinja_context(
+    datastore_info: &DatastoreInfo,
+    credentials: &DatabaseCredentials,
+    params: &Connect,
+) -> Value {
     context! {
         host => datastore_info.satori_host,
         user => credentials.username,

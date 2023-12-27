@@ -1,6 +1,6 @@
 use thiserror::Error;
 
-use crate::{login::errors::LoginError, helpers::default_app_folder::DefaultFolderError};
+use crate::{helpers::default_app_folder::DefaultFolderError, login::errors::LoginError};
 
 #[derive(Debug, Error)]
 pub enum ConnectError {
@@ -11,5 +11,5 @@ pub enum ConnectError {
     #[error("{0}")]
     HomeFolderError(#[from] DefaultFolderError),
     #[error("Failed to get datastore: {0} from datastores info file")]
-    DatastoreNotFound(String)
+    DatastoreNotFound(String),
 }

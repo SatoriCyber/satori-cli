@@ -6,8 +6,8 @@ use crate::cli::auto_complete;
 mod cli;
 mod connect;
 mod helpers;
-mod login;
 mod list;
+mod login;
 
 #[tokio::main]
 async fn main() {
@@ -22,10 +22,12 @@ async fn main() {
                 exit_status = 1;
             };
         }
-        cli::parser::Flow::Connect(params) => if let Err(err) =  connect::run(params).await {
+        cli::parser::Flow::Connect(params) => {
+            if let Err(err) = connect::run(params).await {
                 log::error!("{}", err);
                 exit_status = 1;
-        },
+            }
+        }
         cli::parser::Flow::AutoComplete(params, out) => {
             auto_complete::run(params, out);
         }

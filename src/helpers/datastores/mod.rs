@@ -1,5 +1,5 @@
-pub mod file;
-pub mod errors;
 pub mod data;
+pub mod errors;
+pub mod file;
 
 pub use data::*;

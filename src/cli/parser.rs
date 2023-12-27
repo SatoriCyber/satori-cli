@@ -1,13 +1,13 @@
 use std::path::PathBuf;
 
 /// Handle parsing the CLI arguments.
-
 use clap::{arg, command, value_parser, ArgAction, ArgMatches, Command};
 use clap_complete::Shell;
 
 use crate::{
     connect::{Connect, ConnectBuilder},
-    login::{Login, LoginBuilder}, list::List,
+    list::List,
+    login::{Login, LoginBuilder},
 };
 
 use super::{
@@ -29,8 +29,7 @@ pub fn parse() -> CliResult {
         build_connect_from_args(args, domain.to_owned())
     } else if let Some(args) = matches.subcommand_matches("list") {
         handle_list(args)
-    }
-    else if let Some(args) = matches.subcommand_matches("auto_complete") {
+    } else if let Some(args) = matches.subcommand_matches("auto_complete") {
         handle_auto_complete(args)
     } else {
         panic!("No subcommand found")
@@ -103,6 +102,8 @@ fn handle_auto_complete(args: &ArgMatches) -> Flow {
 fn handle_list(args: &ArgMatches) -> Flow {
     if args.get_flag("datastores") {
         Flow::List(List::Datastores)
+    } else if let Some(datastore_name) = args.get_one::<String>("databases") {
+        return Flow::List(List::Databases(datastore_name.to_owned()));
     } else {
         panic!("No subcommand found")
     }
@@ -115,24 +116,34 @@ pub(super) fn get_cmd() -> Command {
         .subcommand(connect::get_command())
         .subcommand(login::get_command())
         .subcommand(get_auto_complete())
+        .hide(true)
         .subcommand(get_list())
+        .hide(true)
         .arg_required_else_help(true)
 }
 
 fn get_auto_complete() -> Command {
-    command!("auto_complete").about("Generate autocomplete").hide(true)
-    .args(vec![
-        arg!(--generate <VALUE> "Generate completion file").action(ArgAction::Set).value_parser(value_parser!(Shell)),
-        arg!(--out <File> "Output file").required(true).value_parser(value_parser!(PathBuf))
-    ])
+    command!("auto_complete")
+        .about("Generate autocomplete")
+        .hide(true)
+        .args(vec![
+            arg!(--generate <VALUE> "Generate completion file")
+                .action(ArgAction::Set)
+                .value_parser(value_parser!(Shell)),
+            arg!(--out <File> "Output file")
+                .required(true)
+                .value_parser(value_parser!(PathBuf)),
+        ])
 }
 
 fn get_list() -> Command {
-    command!("list").about("List resources")
-    .args(vec![
-        arg!(--datastores "Output format")
-    ])
-
+    command!("list")
+        .about("List resources")
+        .hide(true)
+        .args(vec![
+            arg!(--datastores "Get all available datastores"),
+            arg!(--databases <datastore_name> "List of databases for the datastore"),
+        ])
 }
 
 #[derive(Debug)]
@@ -147,5 +158,5 @@ pub enum Flow {
     Login(Login),
     Connect(Connect),
     AutoComplete(Shell, PathBuf),
-    List(List)
+    List(List),
 }

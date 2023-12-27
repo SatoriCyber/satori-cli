@@ -1,4 +1,7 @@
+type DatastoreName = String;
+
 #[derive(Debug)]
 pub enum List {
-    Datastores
+    Datastores,
+    Databases(DatastoreName),
 }

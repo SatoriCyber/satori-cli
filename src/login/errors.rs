@@ -15,8 +15,8 @@ pub enum LoginError {
     #[error("Failed to serialize to json: {0}")]
     SerdeJsonFailure(#[from] serde_json::error::Error),
     #[error("{0}")]
-    HomeFolderError(#[from] DefaultFolderError)
-}   
+    HomeFolderError(#[from] DefaultFolderError),
+}
 
 #[derive(Error, Debug)]
 pub enum WebServerError {

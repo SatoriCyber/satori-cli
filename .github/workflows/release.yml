@@ -91,10 +91,18 @@ jobs:
             CARGO_TERM_COLOR: always        
         - id: get_version
           uses: battila7/get-version-action@v2
+        - name: generate autocomlete for zsh
+          run: |
+            ./satori auto_complete --generate zsh --out satori_auto_complete.zsh
+            sed -i -e "s/^':datastore_name -- The name of the datastore to connect:' \$/':datastore_name -- The name of the datastore to connect:_datastores'/g" \
+            -e "s/^'::database -- Database name:' \$/::database -- Database name:_databases/g" \
+            satori_auto_complete.zsh
+            cat auto_complete_functions/script.zsh >> satori_auto_complete.zsh 
         - name: Create release
           run: |
-              zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-macOS.zip target/release/satori
-              tar czf satori-${{ steps.get_version.outputs.version-without-v }}-macOS.tar.gz --directory=target/release satori
+              zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-macOS.zip target/release/satori satori_auto_complete.zsh
+              tar czf satori-${{ steps.get_version.outputs.version-without-v }}-macOS.tar.gz --directory=target/release satori 
+              tar czvf satori-${{ steps.get_version.outputs.version-without-v }}-macOS.tar.gz satori_auto_complete.zsh
         - name: Upload artifacts
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

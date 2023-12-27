@@ -2,8 +2,6 @@ use thiserror::Error;
 
 use crate::helpers::default_app_folder::DefaultFolderError;
 
-
-
 #[derive(Debug, Error)]
 pub enum DatastoresError {
     #[error("{0}")]
@@ -11,5 +9,5 @@ pub enum DatastoresError {
     #[error("Fail to open file: {0}")]
     OpenFile(#[from] std::io::Error),
     #[error("Fail to parse json: {0}")]
-    Serde(#[from] serde_json::Error)
+    Serde(#[from] serde_json::Error),
 }

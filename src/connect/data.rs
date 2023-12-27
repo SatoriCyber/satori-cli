@@ -34,4 +34,3 @@ pub struct EnvTool {
     pub name: String,
     pub value: String,
 }
-

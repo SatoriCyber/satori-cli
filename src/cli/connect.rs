@@ -56,10 +56,12 @@ pub fn get_command() -> Command {
             );
         }
     }
-    args.push(Arg::new("additional_args")
-    .trailing_var_arg(true)
-    .allow_hyphen_values(true)
-    .action(ArgAction::Append));
+    args.push(
+        Arg::new("additional_args")
+            .trailing_var_arg(true)
+            .allow_hyphen_values(true)
+            .action(ArgAction::Append),
+    );
     args.extend(common::get_common_args());
     Command::new("connect")
         .about("Connect to a tool")

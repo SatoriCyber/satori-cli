@@ -7,9 +7,8 @@ pub type DatastoreName = String;
 #[derive(Deserialize, Debug, Clone, Serialize)]
 #[serde(transparent)]
 pub struct DatastoresInfo {
-    pub value: HashMap<DatastoreName, DatastoreInfo>
+    pub value: HashMap<DatastoreName, DatastoreInfo>,
 }
-
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct DatastoreInfo {

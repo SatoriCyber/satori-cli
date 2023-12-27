@@ -1,6 +1,6 @@
 use crate::helpers::default_app_folder;
 
-use super::{DatastoresInfo, errors};
+use super::{errors, DatastoresInfo};
 
 const DATASTORE_INFO_FILE_NAME: &str = "datastores.json";
 

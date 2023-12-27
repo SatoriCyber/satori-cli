@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
 use std::{fs, io};
@@ -90,15 +90,13 @@ pub async fn run(params: &Login) -> Result<DatabaseCredentials, errors::LoginErr
             .unwrap();
 
     if params.write_to_file {
-        let file_path  = default_app_folder::get()?.join(CREDENTIALS_FILE_NAME);
+        let file_path = default_app_folder::get()?.join(CREDENTIALS_FILE_NAME);
         // Create directories for the file
-        create_directories_for_file(&file_path).map_err(|err| {
-            errors::LoginError::FailedToCreateDirectories(err, file_path.clone())
-        })?;
+        create_directories_for_file(&file_path)
+            .map_err(|err| errors::LoginError::FailedToCreateDirectories(err, file_path.clone()))?;
         let cred_string = serde_json::to_vec_pretty(&database_credentials)?;
-        fs::write(file_path.clone(), cred_string.as_slice()).map_err(|err| {
-            errors::LoginError::FailedToWriteToFile(err, file_path.clone())
-        })?;
+        fs::write(file_path.clone(), cred_string.as_slice())
+            .map_err(|err| errors::LoginError::FailedToWriteToFile(err, file_path.clone()))?;
     } else {
         log::info!(
             "{}",
@@ -166,7 +164,7 @@ pub fn credentials_as_string(
     }
 }
 
-fn create_directories_for_file(file_path: &PathBuf) -> io::Result<()> {
+fn create_directories_for_file(file_path: &Path) -> io::Result<()> {
     if let Some(parent) = file_path.parent() {
         fs::create_dir_all(parent)?;
     }
