@@ -1,5 +1,5 @@
-# satori-cli
-Allow to interact with Satori data portal from the command line.
+# Satori-CLI 
+The Satori CLI enables you to access all of your available datasets from the command line, including both your personal datasets as well as datasets that are made available to you because they are open to groups and teams of which you are already a member. You can request access to read, write or administer datasets.
 
 ## Overview
 - [satori-cli](#satori-cli)
@@ -25,30 +25,30 @@ brew install satori_cli
 
 ## Usage
 ### Connect
-Invokes a CLI tool where the authentication happens using Satori authentication.
-If the credentials already exist, loads from the cache, if not invoke authentication.
+Invokes a CLI tool using Satori authentication.
+If the credentials already exist, the CLI tool loads from them from the cache. If the credentials do not already exist then they are invoked and authenticated.
 
-#### Supported tools:
- - psql
+#### Supported Tools
+The Ssatori CLI supports psql
 
-#### Arguments:
- - `--no-persist` - do not persist the credentials to the cache
+#### Arguments
+ - `--no-persist` - Does not persist the credentials to the cache.
  - `--no-launch-browser` - Do not launch the browser to authenticate, instead print the URL to the terminal. 
- -  `<address>` - The datastore host to connect to.
+ -  `<address>` - The datastore host address connection.
  - `--` - Pass the rest of the arguments to the tool.
 
 #### psql
 Triggers a psql session with the given datastore and database.
 
-**Parameters**:
+**Parameters**
  - `-d <database>` - The database to connect to.
 
-**Example**:
+**Example**
 ```bash
 satori connect psql <datastore-host> -d <database>
 ```
 
-Passing additional args to the tool:
+Passing additional args to the tool
 ```bash
 satori connect psql <datastore-host> -d <database> -- -c 'select 1'
 ```
@@ -57,13 +57,13 @@ satori connect psql <datastore-host> -d <database> -- -c 'select 1'
 Obtain credentials from Satori data portal without the need to use a browser.
 
 **Example**:
-Display the credentials in the terminal (can be used to be integrated with other tools):
+Display the credentials in the terminal (this can be used to integrate with other tools):
 ```bash
 satori login --display
 ```
 
-#### arguments: 
- - `--display` - Print the credentials to the terminal, no persistence.
+#### Arguments: 
+ - `--display` - Print the credentials to the terminal, with no persistence.
  - `--format` - Format of the output, 
    - `csv` (default).
    - `json`, 
