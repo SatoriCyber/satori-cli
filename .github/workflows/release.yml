@@ -95,10 +95,10 @@ jobs:
           run: |
             ./target/release/satori auto_complete --generate zsh --out satori_auto_complete.zsh
             
-            sed -i -e "s/^':datastore_name -- The name of the datastore to connect:' \$/':datastore_name -- The name of the datastore to connect:_datastores'/g" \
-            -e "s/^'::database -- Database name:' \$/::database -- Database name:_databases/g" \
-            satori_auto_complete.zsh
-            cat auto_complete_functions/script.zsh >> satori_auto_complete.zsh 
+            sed -e 's|:datastore_name -- The name of the datastore to connect:|:datastore_name -- The name of the datastore to connect:_datastores|g' -e 's|::database -- Database name:|::database -- Database name:_databases|g' satori_auto_complete.zsh > satori_auto_complete_new.zsh
+            mv satori_auto_complete_new.zsh satori_auto_complete.zsh
+
+            cat auto_complete_functions/script.zsh >> satori_auto_complete.zsh
         - name: Create release
           run: |
               zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-macOS.zip target/release/satori satori_auto_complete.zsh
