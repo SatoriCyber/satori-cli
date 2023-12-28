@@ -11,8 +11,8 @@ use rand::Rng;
 use reqwest::Url;
 use sha2::{Digest, Sha256};
 
-use crate::helpers::default_app_folder;
 use crate::helpers::satori_console::{self, DatabaseCredentials};
+use crate::helpers::{datastores, default_app_folder};
 use crate::login::data::{CODE_VERIFIER, EXPECTED_STATE, JWT};
 use crate::login::web_server;
 
@@ -50,13 +50,30 @@ pub async fn get_creds_with_file(
         Ok(credentials)
     } else {
         log::debug!("Failed to read credentials from file, starting login flow");
-        run(params).await
+        get_database_creds(params).await
     }
 }
 
 /// Login to Satori, save the JWT, returns the credentials
 /// Write to file if it is part of the parameters
 pub async fn run(params: &Login) -> Result<DatabaseCredentials, errors::LoginError> {
+    let fetch_datastores = if let Err(err) = datastores::file::load() {
+        log::debug!("Failed to load datastore info file: {}", err);
+        true
+    } else if params.refresh_datastores {
+        log::debug!("Refresh datastores flag is set");
+        true
+    } else {
+        false
+    };
+
+    if fetch_datastores {
+        unimplemented!("Need to implement the get datastore info from satori console, store to file and use it")
+    }
+    get_database_creds(params).await
+}
+
+async fn get_database_creds(params: &Login) -> Result<DatabaseCredentials, errors::LoginError> {
     let addr = web_server::start(params.port, params.domain.clone()).await?;
 
     let (code_challenge, code_verifier) = generate_code_challenge_pair();
