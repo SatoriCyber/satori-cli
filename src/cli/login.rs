@@ -1,4 +1,4 @@
-use clap::{arg, value_parser, Command, ValueEnum};
+use clap::{arg, value_parser, ArgAction, Command, ValueEnum};
 
 use crate::login::data::CredentialsFormat;
 
@@ -27,6 +27,9 @@ pub fn get_command() -> Command {
         arg!(-f --format <FORMAT>)
             .value_parser(value_parser!(CliCredentialsFormat))
             .default_value("csv"),
+        arg!(--refresh)
+            .help("refresh the local cache files")
+            .action(ArgAction::SetTrue),
     ];
     args.extend(common::get_common_args());
     Command::new("login").about("Login to Satori").args(args)

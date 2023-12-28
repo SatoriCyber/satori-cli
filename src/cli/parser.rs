@@ -56,6 +56,11 @@ fn build_login_from_args(args: &ArgMatches, domain: String) -> Flow {
     } else {
         login_builder
     };
+    let login_builder = if args.get_flag("refresh") {
+        login_builder.refresh_datastores(true)
+    } else {
+        login_builder
+    };
     Flow::Login(login_builder.build().unwrap())
 }
 

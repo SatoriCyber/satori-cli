@@ -26,6 +26,8 @@ pub struct Login {
     pub open_browser: bool,
     #[builder(default = "CredentialsFormat::Csv")]
     pub format: CredentialsFormat,
+    #[builder(default = "false")]
+    pub refresh_datastores: bool,
 }
 
 #[derive(Debug)]
