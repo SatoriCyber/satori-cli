@@ -8,4 +8,4 @@
       value: "{{ password }}"
     - name: PGCHANNELBINDING
       value: disable
-  args: -h {{ host }} -U {{ user }} -d {{ database }}
+  args: -h {{ host }} -U {{ user }} -d {{ database }} --port {{ port }}
