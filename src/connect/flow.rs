@@ -103,5 +103,6 @@ fn get_jinja_context(
         user => credentials.username,
         password => credentials.password,
         database => params.database,
+        port => datastore_info.port
     }
 }
