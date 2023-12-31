@@ -56,7 +56,12 @@ pub async fn get_creds_with_file(
 
 /// Login to Satori, save the JWT, returns the credentials
 /// Write to file if it is part of the parameters
-pub async fn run(params: &Login) -> Result<DatabaseCredentials, errors::LoginError> {
+pub async fn run(params: &Login) -> Result<(), errors::LoginError> {
+    run_internal(params).await?;
+    Ok(())
+}
+
+async fn run_internal(params: &Login) -> Result<DatabaseCredentials, errors::LoginError> {
     let fetch_datastores = if let Err(err) = datastores::file::load() {
         log::debug!("Failed to load datastore info file: {}", err);
         true
