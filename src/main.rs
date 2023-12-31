@@ -8,6 +8,7 @@ mod connect;
 mod helpers;
 mod list;
 mod login;
+mod tools;
 
 #[tokio::main]
 async fn main() {
@@ -33,6 +34,12 @@ async fn main() {
         }
         cli::parser::Flow::List(params) => {
             if let Err(err) = list::run(params) {
+                log::error!("{}", err);
+                exit_status = 1;
+            }
+        }
+        cli::parser::Flow::Tools(params) => {
+            if let Err(err) = tools::run(params).await {
                 log::error!("{}", err);
                 exit_status = 1;
             }

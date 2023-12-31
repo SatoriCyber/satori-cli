@@ -30,6 +30,5 @@ thiserror = "1.0.51"
 tokio = {version="1.35.0", features = ["full"]}
 warp = "0.3.6"
 webbrowser = "0.8.12"
-
 [build-dependencies]
 cargo-deb = "2.0.2"

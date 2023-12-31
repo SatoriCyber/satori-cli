@@ -8,11 +8,13 @@ use crate::{
     connect::{Connect, ConnectBuilder},
     list::List,
     login::{Login, LoginBuilder},
+    tools::{pgpass::PgPass, Tools},
 };
 
 use super::{
     connect,
     login::{self, CliCredentialsFormat},
+    tools,
 };
 
 pub fn parse() -> CliResult {
@@ -31,6 +33,8 @@ pub fn parse() -> CliResult {
         handle_list(args)
     } else if let Some(args) = matches.subcommand_matches("auto_complete") {
         handle_auto_complete(args)
+    } else if let Some(args) = matches.subcommand_matches("pgpass") {
+        handle_pgpass(args, domain.to_owned())
     } else {
         panic!("No subcommand found")
     };
@@ -62,6 +66,12 @@ fn build_login_from_args(args: &ArgMatches, domain: String) -> Flow {
         login_builder
     };
     Flow::Login(login_builder.build().unwrap())
+}
+
+fn handle_pgpass(args: &ArgMatches, domain: String) -> Flow {
+    let login = build_login_common_args(args, domain).build().unwrap();
+    let pgpass = PgPass { login };
+    Flow::Tools(Tools::PgPass(pgpass))
 }
 
 fn build_connect_from_args(args: &ArgMatches, domain: String) -> Flow {
@@ -115,7 +125,7 @@ fn handle_list(args: &ArgMatches) -> Flow {
 }
 
 pub(super) fn get_cmd() -> Command {
-    command!("satori")
+    let mut main_command = command!("satori")
         .arg(arg!(--domain <VALUE> "Oauth domain").default_value("https://app.satoricyber.com"))
         .arg(arg!(--debug "Enable debug mode"))
         .subcommand(connect::get_command())
@@ -124,7 +134,11 @@ pub(super) fn get_cmd() -> Command {
         .hide(true)
         .subcommand(get_list())
         .hide(true)
-        .arg_required_else_help(true)
+        .arg_required_else_help(true);
+    for command in tools::get_commands() {
+        main_command = main_command.subcommand(command);
+    }
+    main_command
 }
 
 fn get_auto_complete() -> Command {
@@ -164,4 +178,5 @@ pub enum Flow {
     Connect(Connect),
     AutoComplete(Shell, PathBuf),
     List(List),
+    Tools(Tools),
 }
