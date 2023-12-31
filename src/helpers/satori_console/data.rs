@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 const EXPIRATION_TIME_MINUTES: i64 = 15;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DatabaseCredentials {
     pub username: String,
     pub password: String,
