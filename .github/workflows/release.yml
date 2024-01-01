@@ -77,7 +77,35 @@ jobs:
         with:
           files: |
             ./**/*.zip
-  build-macOS:
+  build-macOS-ARM:
+      runs-on: macos-os-13-xlarge
+      steps:
+        - name: Build
+          run: cargo build --release --bin satori
+          env:
+            CARGO_TERM_COLOR: always    
+        - name: generate autocomlete for zsh
+          run: |
+            ./target/release/satori auto_complete --generate zsh --out satori_auto_complete.zsh
+            
+            sed -e 's|:datastore_name -- The name of the datastore to connect:|:datastore_name -- The name of the datastore to connect:_datastores|g' -e 's|::database -- Database name:|::database -- Database name:_databases|g' satori_auto_complete.zsh > satori_auto_complete_new.zsh
+            mv satori_auto_complete_new.zsh satori_auto_complete.zsh
+
+            cat auto_complete_functions/script.zsh >> satori_auto_complete.zsh
+            cp satori_auto_complete.zsh target/release/satori_auto_complete.zsh
+        - name: Create release
+          run: |
+              zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-macOS-ARM.zip target/release/satori satori_auto_complete.zsh
+              tar czf satori-${{ steps.get_version.outputs.version-without-v }}-macOS-ARM.tar.gz --directory=target/release satori satori_auto_complete.zsh                   
+        - name: Upload artifacts
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          uses: softprops/action-gh-release@v1
+          with:
+            files: |
+              ./**/*.tar.gz
+              ./**/*.zip              
+  build-macOS-intel:
       runs-on: macos-latest
       steps:
         - name: Checkout code
@@ -102,8 +130,8 @@ jobs:
             cp satori_auto_complete.zsh target/release/satori_auto_complete.zsh
         - name: Create release
           run: |
-              zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-macOS.zip target/release/satori satori_auto_complete.zsh
-              tar czf satori-${{ steps.get_version.outputs.version-without-v }}-macOS.tar.gz --directory=target/release satori satori_auto_complete.zsh
+              zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-macOS-X86_64.zip target/release/satori satori_auto_complete.zsh
+              tar czf satori-${{ steps.get_version.outputs.version-without-v }}-macOS-X86_64.tar.gz --directory=target/release satori satori_auto_complete.zsh
         - name: Upload artifacts
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -112,6 +140,9 @@ jobs:
             files: |
               ./**/*.tar.gz
               ./**/*.zip
+  publish-homebrew:
+      runs-on: ubuntu-latest
+      steps:
         - name: Homebew
           uses: mislav/bump-homebrew-formula-action@v3
           with:
