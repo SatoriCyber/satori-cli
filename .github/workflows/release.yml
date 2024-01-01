@@ -80,6 +80,8 @@ jobs:
   build-macOS-ARM:
       runs-on: macos-os-13-xlarge
       steps:
+        - id: get_version
+          uses: battila7/get-version-action@v2        
         - name: Build
           run: cargo build --release --bin satori
           env:
@@ -143,6 +145,8 @@ jobs:
   publish-homebrew:
       runs-on: ubuntu-latest
       steps:
+        - id: get_version
+          uses: battila7/get-version-action@v2        
         - name: Homebew
           uses: mislav/bump-homebrew-formula-action@v3
           with:
