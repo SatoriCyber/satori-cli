@@ -83,14 +83,17 @@ jobs:
         - id: get_version
           uses: battila7/get-version-action@v2        
         - name: Build
-          run: cargo build --release --bin satori_arm64
+          run: cargo build --release --bin satori
           env:
             CARGO_TERM_COLOR: always
+        - name: rename binary
+          run: |
+            mv target/release/satori target/release/satori_arm64
         - name: Upload Artifact
           uses: actions/upload-artifact@v3
           with:
             name: satori_arm64
-            path: target/release/satori_arm64             
+            path: satori_arm64             
   build-macOS-intel:
       runs-on: macos-latest
       steps:
@@ -100,14 +103,17 @@ jobs:
           run: |
             rustup target add x86_64-apple-darwin
         - name: Build
-          run: cargo build --release --bin satori_x86_64
+          run: cargo build --release --bin satori
           env:
             CARGO_TERM_COLOR: always  
+        - name: rename binary
+          run: |
+            mv target/release/satori target/release/satori_x86_64            
         - name: Upload Artifact
           uses: actions/upload-artifact@v3
           with:
             name: satori_x86_64
-            path: target/release/satori_x86_64
+            path: satori_x86_64
   publish-mac:
       needs: [build-macOS-intel, build-macOS-ARM]
       runs-on: macos-latest
