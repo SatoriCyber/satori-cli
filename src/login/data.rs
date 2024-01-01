@@ -18,7 +18,7 @@ pub(super) static JWT: OnceLock<Jwt> = OnceLock::new();
 pub struct Login {
     #[builder(default = "true")]
     pub write_to_file: bool,
-    #[builder(default = "String::from(\"https://app.satoricyber.com/\")")]
+    #[builder(default = "String::from(\"https://app.satoricyber.com\")")]
     pub domain: String,
     #[builder(default = "0")]
     pub port: u16,
