@@ -4,13 +4,13 @@ use std::time::Duration;
 use std::{fs, io};
 
 use base64::engine::general_purpose;
-/// Handle the login to Satori
 use base64::Engine as _;
 
 use rand::Rng;
 use reqwest::Url;
 use sha2::{Digest, Sha256};
 
+use crate::helpers::datastores::DatastoresInfo;
 use crate::helpers::satori_console::{self, DatabaseCredentials};
 use crate::helpers::{datastores, default_app_folder};
 use crate::login::data::{CODE_VERIFIER, EXPECTED_STATE, JWT};
@@ -26,60 +26,105 @@ type CodeChallenge = String;
 type CodeVerifier = String;
 
 /// Try to load the config from file, if it fails triggers the login flow
-pub async fn get_creds_with_file(
+pub async fn run_with_file(
     params: &Login,
-) -> Result<DatabaseCredentials, errors::LoginError> {
+) -> Result<(DatabaseCredentials, DatastoresInfo), errors::LoginError> {
     let file_path = default_app_folder::get()?.join(CREDENTIALS_FILE_NAME);
-    let credentials = match fs::read_to_string(file_path.clone()) {
-        Ok(cred_string) => {
-            log::debug!("Successfully read file: {:?}", file_path);
-            serde_json::from_str::<DatabaseCredentials>(&cred_string)
-                .map_err(|err| {
-                    log::warn!("Failed to parse credentials: {}, generating new.", err);
-                })
-                .ok()
-                .filter(|credentials| !credentials.expires_soon())
-        }
-        Err(err) => {
-            log::debug!("Failed to read file: {}", err);
-            None
+    let credentials = if params.refresh {
+        None
+    } else {
+        match fs::read_to_string(file_path.clone()) {
+            Ok(cred_string) => {
+                log::debug!("Successfully read file: {:?}", file_path);
+                serde_json::from_str::<DatabaseCredentials>(&cred_string)
+                    .map_err(|err| {
+                        log::warn!("Failed to parse credentials: {}, generating new.", err);
+                    })
+                    .ok()
+                    .filter(|credentials| !credentials.expires_soon())
+            }
+            Err(err) => {
+                log::debug!("Failed to read file: {}", err);
+                None
+            }
         }
     };
+
     log::debug!("credentials: {:?}", credentials);
-    if let Some(credentials) = credentials {
-        Ok(credentials)
+    let (credentials, jwt) = if let Some(credentials) = credentials {
+        (credentials, None)
     } else {
         log::debug!("Failed to read credentials from file, starting login flow");
-        get_database_creds(params).await
-    }
+        let jwt = get_jwt(params.port, params.domain.clone(), params.open_browser).await?;
+        let database_credentials = get_database_credentials(&params.domain, &jwt).await?;
+        if params.write_to_file {
+            write_to_file(&database_credentials)?;
+        }
+        (database_credentials, Some(jwt))
+    };
+    let datastores = if params.refresh {
+        None
+    } else {
+        match datastores::file::load() {
+            Ok(datastores_info) => Some(datastores_info),
+            Err(err) => {
+                log::debug!("Error loading datastores from file: {:?}", err);
+                None
+            }
+        }
+    };
+    let datastores = match datastores {
+        Some(datastores) => datastores,
+        None => {
+            let jwt = match jwt {
+                Some(jwt) => jwt,
+                None => get_jwt(params.port, params.domain.to_owned(), params.open_browser).await?,
+            };
+            let ds_info = datastores::get_from_console(&jwt, &params.domain, CLIENT_ID).await?;
+            datastores::file::write(&ds_info)?;
+            ds_info
+        }
+    };
+    Ok((credentials, datastores))
 }
 
 /// Login to Satori, save the JWT, returns the credentials
 /// Write to file if it is part of the parameters
 pub async fn run(params: &Login) -> Result<(), errors::LoginError> {
-    run_internal(params).await?;
+    let jwt = get_jwt(params.port, params.domain.clone(), params.open_browser).await?;
+    let database_credentials = get_database_credentials(&params.domain, &jwt).await?;
+    if params.write_to_file {
+        write_to_file(&database_credentials)?;
+    } else {
+        log::info!(
+            "{}",
+            credentials_as_string(&database_credentials, &params.format)
+        );
+    }
+    if params.refresh {
+        datastores::get_and_refresh(&jwt, params.domain.clone(), CLIENT_ID).await?;
+    } else if datastores::file::load().is_err() {
+        let ds_info = datastores::get_from_console(&jwt, &params.domain, CLIENT_ID).await?;
+        datastores::file::write(&ds_info)?;
+    }
     Ok(())
 }
 
-async fn run_internal(params: &Login) -> Result<DatabaseCredentials, errors::LoginError> {
-    let fetch_datastores = if let Err(err) = datastores::file::load() {
-        log::debug!("Failed to load datastore info file: {}", err);
-        true
-    } else if params.refresh_datastores {
-        log::debug!("Refresh datastores flag is set");
-        true
-    } else {
-        false
-    };
+async fn get_database_credentials(
+    domain: &str,
+    jwt: &str,
+) -> Result<DatabaseCredentials, errors::LoginError> {
+    let user_info = satori_console::get_user_info(domain, CLIENT_ID, jwt).await?;
 
-    if fetch_datastores {
-        unimplemented!("Need to implement the get datastore info from satori console, store to file and use it")
-    }
-    get_database_creds(params).await
+    Ok(satori_console::get_database_credentials(domain, CLIENT_ID, jwt, &user_info.id).await?)
 }
 
-async fn get_database_creds(params: &Login) -> Result<DatabaseCredentials, errors::LoginError> {
-    let addr = web_server::start(params.port, params.domain.clone()).await?;
+async fn get_jwt(
+    port: u16,
+    domain: String,
+    open_browser: bool,
+) -> Result<String, errors::LoginError> {
+    let addr = web_server::start(port, domain.clone()).await?;
 
     let (code_challenge, code_verifier) = generate_code_challenge_pair();
     CODE_VERIFIER.set(code_verifier).unwrap();
@@ -87,8 +132,8 @@ async fn get_database_creds(params: &Login) -> Result<DatabaseCredentials, error
     let state = build_state();
     EXPECTED_STATE.set(state.clone()).unwrap();
 
-    let url = build_oauth_uri(&params.domain, addr.port(), state, code_challenge);
-    let print_url = if params.open_browser {
+    let url = build_oauth_uri(&domain, addr.port(), state, code_challenge);
+    let print_url = if open_browser {
         // Need to handle a flow where we unable to open url to print the url
         webbrowser::open(url.as_str()).is_err()
     } else {
@@ -102,30 +147,18 @@ async fn get_database_creds(params: &Login) -> Result<DatabaseCredentials, error
         log::debug!("Waiting for JWT to be set");
         sleep(Duration::from_secs(1));
     }
-    let jwt = JWT.get().unwrap().clone();
-    let user_info = satori_console::get_user_info(&params.domain, CLIENT_ID, &jwt)
-        .await
-        .unwrap();
-    let database_credentials =
-        satori_console::get_database_credentials(&params.domain, CLIENT_ID, &jwt, &user_info.id)
-            .await
-            .unwrap();
+    Ok(JWT.get().unwrap().clone())
+}
 
-    if params.write_to_file {
-        let file_path = default_app_folder::get()?.join(CREDENTIALS_FILE_NAME);
-        // Create directories for the file
-        create_directories_for_file(&file_path)
-            .map_err(|err| errors::LoginError::FailedToCreateDirectories(err, file_path.clone()))?;
-        let cred_string = serde_json::to_vec_pretty(&database_credentials)?;
-        fs::write(file_path.clone(), cred_string.as_slice())
-            .map_err(|err| errors::LoginError::FailedToWriteToFile(err, file_path.clone()))?;
-    } else {
-        log::info!(
-            "{}",
-            credentials_as_string(&database_credentials, &params.format)
-        );
-    }
-    Ok(database_credentials)
+fn write_to_file(database_credentials: &DatabaseCredentials) -> Result<(), errors::LoginError> {
+    let file_path = default_app_folder::get()?.join(CREDENTIALS_FILE_NAME);
+    // Create directories for the file
+    create_directories_for_file(&file_path)
+        .map_err(|err| errors::LoginError::FailedToCreateDirectories(err, file_path.clone()))?;
+    let cred_string = serde_json::to_vec_pretty(&database_credentials)?;
+    fs::write(file_path.clone(), cred_string.as_slice())
+        .map_err(|err| errors::LoginError::FailedToWriteToFile(err, file_path.clone()))?;
+    Ok(())
 }
 
 fn generate_code_challenge_pair() -> (CodeChallenge, CodeVerifier) {

@@ -8,9 +8,9 @@ pub fn run(params: List) -> Result<(), ListErrors> {
 }
 
 fn handle_datastores() -> Result<(), ListErrors> {
-    let datastores = crate::helpers::datastores::file::load()?;
-    let datastores_name = datastores
-        .value
+    let info = crate::helpers::datastores::file::load()?;
+    let datastores_name = info
+        .datastores
         .keys()
         .map(|d| d.to_string())
         .collect::<Vec<String>>()
@@ -20,8 +20,8 @@ fn handle_datastores() -> Result<(), ListErrors> {
 }
 
 fn handle_databases(datastore_name: &str) -> Result<(), ListErrors> {
-    let datastores = crate::helpers::datastores::file::load()?;
-    let database_name = datastores.value.get(datastore_name);
+    let info = crate::helpers::datastores::file::load()?;
+    let database_name = info.datastores.get(datastore_name);
     if let Some(database_name) = database_name {
         let databases_name = database_name.databases.join("\n");
         println!("{databases_name}");

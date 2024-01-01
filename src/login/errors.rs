@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use thiserror::Error;
 
-use crate::helpers::default_app_folder::DefaultFolderError;
+use crate::helpers::{datastores, default_app_folder::DefaultFolderError, satori_console};
 
 #[derive(Error, Debug)]
 pub enum LoginError {
@@ -16,6 +16,10 @@ pub enum LoginError {
     SerdeJsonFailure(#[from] serde_json::error::Error),
     #[error("{0}")]
     HomeFolderError(#[from] DefaultFolderError),
+    #[error("Satori error: {0}")]
+    SatoriError(#[from] satori_console::errors::SatoriError),
+    #[error("Datastores error: {0}")]
+    DatastoresError(#[from] datastores::errors::DatastoresError),
 }
 
 #[derive(Error, Debug)]

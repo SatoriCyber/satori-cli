@@ -1,3 +1,5 @@
+use std::hash::Hash;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
@@ -35,4 +37,74 @@ pub struct OauthResponse {
 #[derive(Debug, serde::Deserialize)]
 pub struct UserProfile {
     pub id: String,
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DatastoreAccessDetailsDbs {
+    pub count: usize,
+    pub records: Vec<DataSet>,
+    #[serde(rename = "dataStoreDetails")]
+    pub datastore_details: Vec<DatastoreAccessDetails>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+// The records stands for datasets, for now we don't need the data, just to count how many records we already got
+pub struct DataSet {
+    pub id: String,
+}
+#[derive(Debug, serde::Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct DatastoreAccessDetails {
+    pub id: String,
+    pub name: String,
+    pub r#type: DatastoreType,
+    pub satori_hostname: String,
+    pub port: Option<u16>,
+    pub satori_auth_enabled: bool,
+    pub dbs: Vec<String>,
+}
+impl Eq for DatastoreAccessDetails {}
+
+impl PartialEq for DatastoreAccessDetails {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Hash for DatastoreAccessDetails {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
+}
+
+#[derive(Debug, serde::Deserialize, Clone, Serialize, PartialEq)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum DatastoreType {
+    Snowflake,
+    Redshift,
+    Bigquery,
+    Postgresql,
+    Athena,
+    Mssql,
+    Synapse,
+    Mysql,
+    ApiServer,
+    MariaDb,
+    CockroachDb,
+    Opensearch,
+    Greenplum,
+    S3,
+    Mongo,
+    Databricks,
+}
+
+impl DatastoreType {
+    pub fn is_postgres_dialect(&self) -> bool {
+        self == &DatastoreType::Postgresql
+            || self == &DatastoreType::CockroachDb
+            || self == &DatastoreType::Redshift
+            || self == &DatastoreType::Greenplum
+    }
 }
