@@ -22,34 +22,31 @@ pub fn parse() -> CliResult {
 
     let matches = command.get_matches();
 
-    let domain = get_domain_from_args(&matches);
-    let debug = get_debug_from_args(&matches);
-
-    let flow = if let Some(args) = matches.subcommand_matches("login") {
-        build_login_from_args(args, domain.to_owned())
+    let (flow, debug) = if let Some(args) = matches.subcommand_matches("login") {
+        let debug = get_debug_from_args(args);
+        (build_login_from_args(args), debug)
     } else if let Some(args) = matches.subcommand_matches("connect") {
-        build_connect_from_args(args, domain.to_owned())
+        let debug = get_debug_from_args(args);
+        (build_connect_from_args(args), debug)
     } else if let Some(args) = matches.subcommand_matches("list") {
-        handle_list(args)
+        (handle_list(args), false)
     } else if let Some(args) = matches.subcommand_matches("auto_complete") {
-        handle_auto_complete(args)
+        (handle_auto_complete(args), false)
     } else if let Some(args) = matches.subcommand_matches("pgpass") {
-        handle_pgpass(args, domain.to_owned())
+        let debug = get_debug_from_args(args);
+        (handle_pgpass(args), debug)
     } else {
         panic!("No subcommand found")
     };
     CliResult { flow, debug }
 }
 
-fn get_domain_from_args(args: &ArgMatches) -> &str {
-    args.get_one::<String>("domain").unwrap()
-}
 fn get_debug_from_args(args: &ArgMatches) -> bool {
     args.get_flag("debug")
 }
 
-fn build_login_from_args(args: &ArgMatches, domain: String) -> Flow {
-    let login_builder = build_login_common_args(args, domain);
+fn build_login_from_args(args: &ArgMatches) -> Flow {
+    let login_builder = build_login_common_args(args);
     let login_builder = if args.get_flag("display") {
         login_builder.write_to_file(false)
     } else {
@@ -60,23 +57,18 @@ fn build_login_from_args(args: &ArgMatches, domain: String) -> Flow {
     } else {
         login_builder
     };
-    let login_builder = if args.get_flag("refresh") {
-        login_builder.refresh_datastores(true)
-    } else {
-        login_builder
-    };
     Flow::Login(login_builder.build().unwrap())
 }
 
-fn handle_pgpass(args: &ArgMatches, domain: String) -> Flow {
-    let login = build_login_common_args(args, domain).build().unwrap();
+fn handle_pgpass(args: &ArgMatches) -> Flow {
+    let login = build_login_common_args(args).build().unwrap();
     let pgpass = PgPass { login };
     Flow::Tools(Tools::PgPass(pgpass))
 }
 
-fn build_connect_from_args(args: &ArgMatches, domain: String) -> Flow {
+fn build_connect_from_args(args: &ArgMatches) -> Flow {
     let connect_builder = ConnectBuilder::default();
-    let login_builder = build_login_common_args(args, domain);
+    let login_builder = build_login_common_args(args);
     let login = if args.get_flag("no-persist") {
         login_builder.write_to_file(false)
     } else {
@@ -99,8 +91,18 @@ fn build_connect_from_args(args: &ArgMatches, domain: String) -> Flow {
 }
 
 /// Set the login builder only with the common args
-fn build_login_common_args(args: &ArgMatches, domain: String) -> LoginBuilder {
-    let login_builder = LoginBuilder::default().domain(domain);
+fn build_login_common_args(args: &ArgMatches) -> LoginBuilder {
+    let login_builder = if let Some(domain) = args.get_one::<String>("domain") {
+        LoginBuilder::default().domain(domain.to_owned())
+    } else {
+        LoginBuilder::default()
+    };
+
+    let login_builder = if args.get_flag("refresh") {
+        login_builder.refresh(true)
+    } else {
+        login_builder
+    };
     if args.get_flag("no-launch-browser") {
         login_builder.open_browser(false)
     } else {
@@ -126,8 +128,6 @@ fn handle_list(args: &ArgMatches) -> Flow {
 
 pub(super) fn get_cmd() -> Command {
     let mut main_command = command!("satori")
-        .arg(arg!(--domain <VALUE> "Oauth domain").default_value("https://app.satoricyber.com"))
-        .arg(arg!(--debug "Enable debug mode"))
         .subcommand(connect::get_command())
         .subcommand(login::get_command())
         .subcommand(get_auto_complete())

@@ -20,10 +20,7 @@ use super::PgPass;
 const PGPASS_FILE_NAME: &str = ".pgpass";
 
 pub async fn run(params: PgPass) -> Result<(), errors::ToolsErrors> {
-    // Need to catch where file not found and trigger login flow
-    let datastores_info = crate::helpers::datastores::file::load()?;
-
-    let credentials = login::get_creds_with_file(&params.login).await?;
+    let (credentials, datastores_info) = login::run_with_file(&params.login).await?;
 
     let satori_pgpass = pgpass_from_satori_db(datastores_info.clone(), credentials.clone());
 
@@ -161,9 +158,9 @@ fn pgpass_from_satori_db(
     credentials: DatabaseCredentials,
 ) -> HashSet<PgPassEntry> {
     datastores_info
-        .value
+        .datastores
         .values()
-        .filter(|info| info.is_postgres_dialect())
+        .filter(|info| info.r#type.is_postgres_dialect())
         .flat_map(|datastore_info| {
             datastore_info
                 .databases
@@ -171,7 +168,7 @@ fn pgpass_from_satori_db(
                 .map(|database| {
                     PgPassEntry::from_creds(
                         credentials.clone(),
-                        datastore_info.port,
+                        datastore_info.port.expect("Unexpected missing port"),
                         datastore_info.satori_host.clone(),
                         database.clone(),
                     )
