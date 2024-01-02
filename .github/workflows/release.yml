@@ -87,8 +87,8 @@ jobs:
             rustup target add aarch64-apple-darwin
         - name: add required dependencies
           run: |
-            apt-get update
-            apt-get install -y build-essential cmake clang
+            sudo apt-get update
+            sudo apt-get install -y build-essential cmake clang
         - name: Build
           run: cargo build --target=aarch64-apple-darwin --release --bin satori
           env:
