@@ -98,7 +98,7 @@ jobs:
             CARGO_TERM_COLOR: always
         - name: rename binary
           run: |
-            mv target/release/satori target/release/satori_arm64
+            mv target/aarch64-apple-darwin/release/satori satori_arm64
         - name: Upload Artifact
           uses: actions/upload-artifact@v3
           with:
@@ -118,7 +118,7 @@ jobs:
             CARGO_TERM_COLOR: always  
         - name: rename binary
           run: |
-            mv target/release/satori target/release/satori_x86_64            
+            mv target/release/satori satori_x86_64            
         - name: Upload Artifact
           uses: actions/upload-artifact@v3
           with:
