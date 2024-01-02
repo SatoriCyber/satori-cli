@@ -87,16 +87,16 @@ jobs:
         - name: add arm64 target
           run: |
             rustup target add aarch64-apple-darwin
-        # - name: add required dependencies
-        #   run: |
-        #     sudo apt-get update
-        #     sudo apt-get install -y build-essential cmake clang
+        - name: Install Dependencies
+          run: |
+            xcode-select --install
+            brew install qemu
+            brew install FiloSottile/musl-cross/musl-cross
+      
         - name: Build
           run: cargo build --target=aarch64-apple-darwin --release --bin satori
           env:
             CARGO_TERM_COLOR: always
-            CC: aarch64-apple-darwin14-clang
-            CARGO_TARGET_AARCH64_APPLE_DARWIN_LINKER: aarch64-apple-darwin14-ld
         - name: rename binary
           run: |
             mv target/release/satori target/release/satori_arm64
