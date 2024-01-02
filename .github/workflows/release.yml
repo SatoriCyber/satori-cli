@@ -80,6 +80,8 @@ jobs:
   build-macOS-ARM:
       runs-on: ubuntu-latest
       steps:
+        - name: Checkout code
+          uses: actions/checkout@v4        
         - id: get_version
           uses: battila7/get-version-action@v2
         - name: add arm64 target
