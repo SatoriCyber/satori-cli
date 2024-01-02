@@ -132,7 +132,11 @@ jobs:
       steps:
         - name: download artifacts
           uses: actions/download-artifact@v4
-
+          with:
+            pattern: satori_*
+        - name: Display artifacts
+          run: |
+            ls -R          
         - name: universal binary
           run: |
             lipo -create -output satori satori_x86_64 satori_arm64
