@@ -135,7 +135,7 @@ jobs:
 
         - name: universal binary
           run: |
-            lipo -create -output satori satori_x86_64 satori_arm64
+              lipo -create satori_x86_64 -arch x86_64 satori_arm64 -arch arm64 -output satori
         - id: get_version
           uses: battila7/get-version-action@v2         
         - name: generate autocomlete for zsh
