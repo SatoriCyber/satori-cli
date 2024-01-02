@@ -78,12 +78,19 @@ jobs:
           files: |
             ./**/*.zip
   build-macOS-ARM:
-      runs-on: macos-os-13-xlarge
+      runs-on: ubuntu-latest
       steps:
         - id: get_version
-          uses: battila7/get-version-action@v2        
+          uses: battila7/get-version-action@v2
+        - name: add arm64 target
+          run: |
+            rustup target add aarch64-apple-darwin
+        - name: add required dependencies
+          run: |
+            apt-get update
+            apt-get install -y build-essential cmake clang
         - name: Build
-          run: cargo build --release --bin satori
+          run: cargo build --target=aarch64-apple-darwin --release --bin satori
           env:
             CARGO_TERM_COLOR: always
         - name: rename binary
