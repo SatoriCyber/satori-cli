@@ -2,17 +2,19 @@
 The Satori CLI enables you to access all of your available datasets from the command line, including both your personal datasets as well as datasets that are made available to you because they are open to groups and teams of which you are already a member. You can request access to read, write or administer datasets.
 
 ## Overview
-- [satori-cli](#satori-cli)
+- [Satori-CLI](#satori-cli)
   - [Overview](#overview)
   - [Installation](#installation)
     - [Mac](#mac)
   - [Usage](#usage)
     - [Connect](#connect)
-      - [Supported tools:](#supported-tools)
-      - [Arguments:](#arguments)
+      - [Supported Tools](#supported-tools)
+      - [Arguments](#arguments)
       - [psql](#psql)
+    - [PgPass](#pgpass)
+      - [Arguments](#arguments-1)
     - [Login](#login)
-      - [arguments:](#arguments-1)
+      - [Arguments:](#arguments-2)
   - [Contributing](#contributing)
 
 
@@ -23,35 +25,52 @@ brew tap satoricyber/satori
 brew install satori_cli
 ```
 
+**Enable auto-completion**
+add the following line to your shell configuration file (e.g., ~/.bashrc or ~/.zshrc):
+```bash 
+  source "$(brew --prefix)/etc/bash_completion.d/satori_auto_complete.zsh"
+```
+Once the login is completed one time, the auto-complete will work.
+
+**first time use**
+For auto-complete to work run the [login](#login) command.
+
 ## Usage
 ### Connect
 Invokes a CLI tool using Satori authentication.
 If the credentials already exist, the CLI tool loads from them from the cache. If the credentials do not already exist then they are invoked and authenticated.
 
 #### Supported Tools
-The Ssatori CLI supports psql
+The Satori CLI supports psql
 
 #### Arguments
  - `--no-persist` - Does not persist the credentials to the cache.
  - `--no-launch-browser` - Do not launch the browser to authenticate, instead print the URL to the terminal. 
- -  `<address>` - The datastore host address connection.
+ - `--refresh` - obtain new credentials and datastores information from the server, even if they already exist in the cache.
+ -  `<datastore host>` - The datastore host.
  - `--` - Pass the rest of the arguments to the tool.
 
 #### psql
 Triggers a psql session with the given datastore and database.
 
-**Parameters**
- - `-d <database>` - The database to connect to.
-
 **Example**
 ```bash
-satori connect psql <datastore-host> -d <database>
+  satori connect psql <datastore-host> <database>
 ```
 
 Passing additional args to the tool
 ```bash
 satori connect psql <datastore-host> -d <database> -- -c 'select 1'
 ```
+
+### PgPass
+Generates a pgpass file from all datastore information.
+```bash
+satori pgpass
+```
+#### Arguments
+  - `--refresh` - obtain new credentials and datastores information from the server, even if they already exist in the cache.
+  - `--no-launch-browser` - Do not launch the browser to authenticate, instead print the URL to the terminal. 
 
 ### Login
 Obtain credentials from Satori data portal without the need to use a browser.
@@ -64,6 +83,7 @@ satori login --display
 
 #### Arguments: 
  - `--display` - Print the credentials to the terminal, with no persistence.
+ - `--refresh` - obtain new credentials and datastores information from the server, even if they already exist in the cache. 
  - `--format` - Format of the output, 
    - `csv` (default).
    - `json`, 
