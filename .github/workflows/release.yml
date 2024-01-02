@@ -89,7 +89,6 @@ jobs:
             rustup target add aarch64-apple-darwin
         - name: Install Dependencies
           run: |
-            xcode-select --install
             brew install qemu
             brew install FiloSottile/musl-cross/musl-cross
       
