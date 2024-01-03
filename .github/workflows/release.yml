@@ -154,7 +154,6 @@ jobs:
             mv satori_auto_complete_new.zsh satori_auto_complete.zsh
 
             cat auto_complete_functions/script.zsh >> satori_auto_complete.zsh
-            cp satori_auto_complete.zsh target/release/satori_auto_complete.zsh
         - name: Create release
           run: |
               zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-macOS.zip satori satori_auto_complete.zsh
