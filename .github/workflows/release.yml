@@ -130,6 +130,8 @@ jobs:
       needs: [build-macOS-intel, build-macOS-ARM]
       runs-on: macos-latest
       steps:
+        - name: Checkout code
+          uses: actions/checkout@v4        
         - name: download artifacts
           uses: actions/download-artifact@v4
           with:
@@ -145,7 +147,7 @@ jobs:
           uses: battila7/get-version-action@v2         
         - name: generate autocomlete for zsh
           run: |
-            ./target/release/satori auto_complete --generate zsh --out satori_auto_complete.zsh
+            ./satori auto_complete --generate zsh --out satori_auto_complete.zsh
             
             sed -e 's|:datastore_name -- The name of the datastore to connect:|:datastore_name -- The name of the datastore to connect:_datastores|g' -e 's|::database -- Database name:|::database -- Database name:_databases|g' satori_auto_complete.zsh > satori_auto_complete_new.zsh
             mv satori_auto_complete_new.zsh satori_auto_complete.zsh
@@ -154,8 +156,8 @@ jobs:
             cp satori_auto_complete.zsh target/release/satori_auto_complete.zsh
         - name: Create release
           run: |
-              zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-macOS.zip target/release/satori satori_auto_complete.zsh
-              tar czf satori-${{ steps.get_version.outputs.version-without-v }}-macOS.tar.gz --directory=target/release satori satori_auto_complete.zsh
+              zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-macOS.zip satori satori_auto_complete.zsh
+              tar czf satori-${{ steps.get_version.outputs.version-without-v }}-macOS.tar.gz satori satori_auto_complete.zsh
         - name: Upload artifacts
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
