@@ -8,5 +8,5 @@ pub fn build(args: &ArgMatches) -> Flow {
     }
     // When more commands will be presented we will need to remove unwrap
     let database = args.get_one::<String>("databases").unwrap();
-    return Flow::List(List::Databases(database.to_owned()));
+    Flow::List(List::Databases(database.to_owned()))
 }

@@ -23,7 +23,7 @@ pub fn build(args: &ArgMatches) -> Result<Flow, CliError> {
     let profile_name = get_profile()?;
 
     let target = get_target(args);
-    let additional_args = common::get_additional_args(&args);
+    let additional_args = common::get_additional_args(args);
     Ok(Flow::Run(Run::Dbt(Dbt {
         login,
         profiles_path,
@@ -62,10 +62,10 @@ fn get_profiles_path(args: &ArgMatches) -> PathBuf {
 }
 
 fn get_profile() -> Result<String, CliError> {
-    let file = File::open("dbt_project.yml").map_err(|err| CliError::DbtProjectFileError(err))?;
+    let file = File::open("dbt_project.yml").map_err( CliError::DbtProjectFileError)?;
     let reader = std::io::BufReader::new(file);
     let dbt_project = serde_yaml::from_reader::<_, DbtProject>(reader)
-        .map_err(|err| CliError::DbtProjectParseError(err))?;
+        .map_err(CliError::DbtProjectParseError)?;
     Ok(dbt_project.profile)
 }
 

@@ -16,7 +16,7 @@ type TargetName = String;
 
 pub async fn run(params: Dbt) -> Result<(), errors::RunError> {
     let mut profiles = get_profiles(&params.profiles_path)?;
-    let mut active_profile = profiles
+    let active_profile = profiles
         .value
         .get_mut(&params.profile_name)
         .ok_or_else(|| errors::RunError::DbtProfileNotFound(params.profile_name.clone()))?;
@@ -24,16 +24,16 @@ pub async fn run(params: Dbt) -> Result<(), errors::RunError> {
     let target = params
         .target
         .unwrap_or_else(|| active_profile.target.clone());
-    let target_params = get_target_values(&mut active_profile, &target)?;
+    let target_params = get_target_values(active_profile, &target)?;
     log::debug!("target params: {:?}", target_params);
     let mut rewritten = false;
     if should_rewrite_field(&target_params.user) {
         log::debug!("rewriting user");
-        (*target_params).user = "{{ env_var('SATORI_USERNAME') }}".to_owned();
+        target_params.user = "{{ env_var('SATORI_USERNAME') }}".to_owned();
         rewritten = true;
     }
     if should_rewrite_field(&target_params.password) {
-        (*target_params).password = "{{ env_var('SATORI_PASSWORD') }}".to_owned();
+        target_params.password = "{{ env_var('SATORI_PASSWORD') }}".to_owned();
         rewritten = true;
     }
     log::debug!("rewritten {:?}", rewritten);
@@ -84,8 +84,8 @@ fn get_profiles(profiles_path: &PathBuf) -> Result<Profiles, errors::RunError> {
     let file = File::open(profiles_path)
         .map_err(|err| errors::RunError::DbtProfilesReadError(profiles_path.clone(), err))?;
     let buf = std::io::BufReader::new(file);
-    Ok(serde_yaml::from_reader::<_, Profiles>(buf)
-        .map_err(|err| errors::RunError::DbtProfilesParseError(profiles_path.clone(), err))?)
+    serde_yaml::from_reader::<_, Profiles>(buf)
+        .map_err(|err| errors::RunError::DbtProfilesParseError(profiles_path.clone(), err))
 }
 
 fn get_target_values<'a>(

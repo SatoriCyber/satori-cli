@@ -191,7 +191,7 @@ fn build_oauth_uri(
     code_challenge: String,
 ) -> Result<Url, errors::LoginError> {
     let redirect_url = format!("http://localhost:{local_port}");
-    Ok(Url::parse_with_params(
+    Url::parse_with_params(
         format!("{oauth_domain}/{OAUTH_URI}").as_str(),
         &[
             ("redirect_uri", redirect_url),
@@ -205,7 +205,7 @@ fn build_oauth_uri(
     .map_err(|err| {
         log::debug!("Failed to parse url: {}", err);
         errors::LoginError::UrlParseError(oauth_domain.to_string())
-    })?)
+    })
 }
 
 pub fn credentials_as_string(

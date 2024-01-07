@@ -1,14 +1,9 @@
-use std::{fs::File, io::BufWriter, path::PathBuf};
+use std::{path::PathBuf, fs::File, io::BufWriter};
 
 use clap::Command;
-use clap_complete::{generate, Generator, Shell};
+use clap_complete::{Shell, Generator, generate};
 
-use super::{command, parsers, Flow};
-
-pub fn run() -> Result<Flow, super::CliError> {
-    let command = command::get();
-    parsers::parse(command)
-}
+use crate::cli::command;
 
 pub fn auto_complete(shell: Shell, out: PathBuf) {
     let mut cmd = command::get();

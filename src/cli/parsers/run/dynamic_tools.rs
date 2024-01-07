@@ -20,7 +20,7 @@ pub fn build(tool_name: &str, args: &ArgMatches) -> Flow {
     .unwrap();
     let datastore_name = args.get_one::<String>("datastore_name").unwrap().to_owned();
     let database = args.get_one::<String>("database").cloned();
-    let additional_args = common::get_additional_args(&args);
+    let additional_args = common::get_additional_args(args);
 
     let tools_data = tools::get_or_init();
     for tool_data in &tools_data.value {
