@@ -1,10 +1,14 @@
+use std::sync::OnceLock;
+
 use env_logger::Builder;
 use log::LevelFilter;
 
-pub fn init(debug: bool) {
+pub static DEBUG: OnceLock<bool> = OnceLock::new();
+
+pub fn init() {
     let mut builder = Builder::new();
 
-    if debug {
+    if *DEBUG.get_or_init(|| false) {
         builder.filter(None, LevelFilter::Debug);
     } else {
         builder.filter(None, LevelFilter::Info);

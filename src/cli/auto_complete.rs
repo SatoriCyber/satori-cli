@@ -3,10 +3,10 @@ use std::{fs::File, io::BufWriter, path::PathBuf};
 use clap::Command;
 use clap_complete::{generate, Generator, Shell};
 
-use crate::cli::parser::get_cmd;
+use crate::cli::command;
 
-pub fn run(shell: Shell, out: PathBuf) {
-    let mut cmd = get_cmd();
+pub fn auto_complete(shell: Shell, out: PathBuf) {
+    let mut cmd = command::get();
     eprintln!("Generating completion file for {shell}...");
     let file = File::create(out).unwrap();
     let mut buf_writer = BufWriter::new(file);
