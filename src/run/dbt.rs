@@ -68,13 +68,17 @@ pub async fn run(params: Dbt) -> Result<(), errors::RunError> {
         target,
     ]);
 
+    let envs = [
+        ("PGCHANNELBINDING", "disable".to_string()),
+        ("SATORI_USERNAME", credentials.username),
+        ("SATORI_PASSWORD", credentials.password),
+    ];
+
+    log::debug!("executing dbt with args: {:?} env: {:?}", args, envs);
+
     let mut command_results = std::process::Command::new("dbt")
         .args(args)
-        .envs([
-            ("PGCHANNELBINDING", "disable".to_string()),
-            ("SATORI_USERNAME", credentials.username),
-            ("SATORI_PASSWORD", credentials.password),
-        ])
+        .envs(envs)
         .spawn()?;
     command_results.wait()?;
     Ok(())
