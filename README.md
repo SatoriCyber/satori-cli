@@ -7,7 +7,7 @@ The Satori CLI enables you to access all of your available datasets from the com
   - [Installation](#installation)
     - [Mac](#mac)
   - [Usage](#usage)
-    - [Connect](#connect)
+    - [Run](#run)
       - [Supported Tools](#supported-tools)
       - [Arguments](#arguments)
       - [psql](#psql)
@@ -36,7 +36,7 @@ Once the login is completed one time, the auto-complete will work.
 For auto-complete to work run the [login](#login) command.
 
 ## Usage
-### Connect
+### Run
 Invokes a CLI tool using Satori authentication.
 If the credentials already exist, the CLI tool loads from them from the cache. If the credentials do not already exist then they are invoked and authenticated.
 
@@ -55,12 +55,12 @@ Triggers a psql session with the given datastore and database.
 
 **Example**
 ```bash
-  satori connect psql <datastore-host> <database>
+  satori run psql <datastore-host> <database>
 ```
 
 Passing additional args to the tool
 ```bash
-satori connect psql <datastore-host> -d <database> -- -c 'select 1'
+satori run psql <datastore-host> -d <database> -- -c 'select 1'
 ```
 
 ### PgPass
