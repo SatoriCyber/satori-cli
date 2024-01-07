@@ -132,7 +132,7 @@ async fn get_jwt(
     let state = build_state();
     EXPECTED_STATE.set(state.clone()).unwrap();
 
-    let url = build_oauth_uri(&domain, addr.port(), state, code_challenge);
+    let url = build_oauth_uri(&domain, addr.port(), state, code_challenge)?;
     let print_url = if open_browser {
         // Need to handle a flow where we unable to open url to print the url
         webbrowser::open(url.as_str()).is_err()
@@ -189,9 +189,9 @@ fn build_oauth_uri(
     local_port: u16,
     state: String,
     code_challenge: String,
-) -> Url {
+) -> Result<Url, errors::LoginError> {
     let redirect_url = format!("http://localhost:{local_port}");
-    Url::parse_with_params(
+    Ok(Url::parse_with_params(
         format!("{oauth_domain}/{OAUTH_URI}").as_str(),
         &[
             ("redirect_uri", redirect_url),
@@ -201,8 +201,10 @@ fn build_oauth_uri(
             ("code_challenge_method", "S256".to_owned()),
             ("state", state),
         ],
-    )
-    .unwrap()
+    ).map_err(|err| {
+        log::debug!("Failed to parse url: {}", err);
+        errors::LoginError::UrlParseError(oauth_domain.to_string())
+    })?)
 }
 
 pub fn credentials_as_string(

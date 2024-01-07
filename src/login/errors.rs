@@ -20,6 +20,8 @@ pub enum LoginError {
     SatoriError(#[from] satori_console::errors::SatoriError),
     #[error("Datastores error: {0}")]
     DatastoresError(#[from] datastores::errors::DatastoresError),
+    #[error("Failed to parse url: {0}")]
+    UrlParseError(String),
 }
 
 #[derive(Error, Debug)]

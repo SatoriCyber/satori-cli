@@ -1,3 +1,4 @@
+use core::fmt;
 use std::hash::Hash;
 
 use chrono::{DateTime, Utc};
@@ -5,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 const EXPIRATION_TIME_MINUTES: i64 = 15;
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct DatabaseCredentials {
     pub username: String,
     pub password: String,
@@ -24,6 +25,11 @@ impl DatabaseCredentials {
             log::debug!("Credentials will not expire soon");
         }
         res
+    }
+}
+impl fmt::Debug for DatabaseCredentials {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("DatabaseCredentials").field("username", &self.username).field("password", &"*********").field("expires_at", &self.expires_at).finish()
     }
 }
 

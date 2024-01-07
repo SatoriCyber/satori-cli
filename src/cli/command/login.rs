@@ -2,7 +2,7 @@ use clap::{arg, value_parser, Command, ValueEnum};
 
 use crate::login::data::CredentialsFormat;
 
-use super::common;
+use super::common_args;
 
 #[derive(Copy, Clone, ValueEnum)]
 pub enum CliCredentialsFormat {
@@ -28,6 +28,6 @@ pub fn get_command() -> Command {
             .value_parser(value_parser!(CliCredentialsFormat))
             .default_value("csv"),
     ];
-    args.extend(common::get_common_args());
+    args.extend(common_args::get());
     Command::new("login").about("Login to Satori").args(args)
 }

@@ -1,6 +1,11 @@
-pub mod auto_complete;
-mod common;
-mod connect;
-mod login;
-pub mod parser;
-mod tools;
+pub mod cli;
+
+mod parsers;
+mod command;
+pub mod data;
+pub mod errors;
+
+
+pub use cli::{run, auto_complete};
+pub use data::Flow;
+pub use errors::CliError;

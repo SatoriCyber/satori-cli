@@ -1,11 +1,12 @@
 - name: psql
-  require:
-    name: database
-    help: Database name
+  cli_args:
+    - name: database
+      help: Database name
+      required: true
   command: psql
   env:
     - name: PGPASSWORD
       value: "{{ password }}"
     - name: PGCHANNELBINDING
       value: disable
-  args: -h {{ host }} -U {{ user }} -d {{ database }} --port {{ port }}
+  command_args: -h {{ host }} -U {{ user }} -d {{ database }} --port {{ port }}

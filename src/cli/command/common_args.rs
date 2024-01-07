@@ -2,7 +2,9 @@
 
 use clap::{arg, Arg, ArgAction};
 
-pub fn get_common_args() -> Vec<Arg> {
+
+/// Args which are in use by all commands.
+pub fn get() -> Vec<Arg> {
     vec![
         Arg::new("no-launch-browser")
             .long("no-launch-browser")
@@ -13,5 +15,6 @@ pub fn get_common_args() -> Vec<Arg> {
         arg!(--refresh)
             .help("refresh the local cache files")
             .action(ArgAction::SetTrue),
+        Arg::new("no-persist").long("no-persist").help("Don't persist the database credentials").action(ArgAction::SetTrue).default_value("false"),
     ]
 }
