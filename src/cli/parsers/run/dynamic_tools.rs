@@ -1,6 +1,13 @@
 use clap::ArgMatches;
 
-use crate::{cli::{Flow, parsers::{common::build_login_common_args, run::common}}, run::{Run, DynamicTool}, helpers::tools};
+use crate::{
+    cli::{
+        parsers::{common::build_login_common_args, run::common},
+        Flow,
+    },
+    helpers::tools,
+    run::{DynamicTool, Run},
+};
 
 pub fn build(tool_name: &str, args: &ArgMatches) -> Flow {
     let login_builder = build_login_common_args(args);
@@ -8,7 +15,9 @@ pub fn build(tool_name: &str, args: &ArgMatches) -> Flow {
         login_builder.write_to_file(false)
     } else {
         login_builder
-    }.build().unwrap();
+    }
+    .build()
+    .unwrap();
     let datastore_name = args.get_one::<String>("datastore_name").unwrap().to_owned();
     let database = args.get_one::<String>("database").cloned();
     let additional_args = common::get_additional_args(&args);

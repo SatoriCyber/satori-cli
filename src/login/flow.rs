@@ -201,7 +201,8 @@ fn build_oauth_uri(
             ("code_challenge_method", "S256".to_owned()),
             ("state", state),
         ],
-    ).map_err(|err| {
+    )
+    .map_err(|err| {
         log::debug!("Failed to parse url: {}", err);
         errors::LoginError::UrlParseError(oauth_domain.to_string())
     })?)

@@ -1,11 +1,10 @@
 use clap::ArgMatches;
 
-use crate::{login::LoginBuilder, helpers::logger::DEBUG};
+use crate::{helpers::logger::DEBUG, login::LoginBuilder};
 
 pub fn set_debug(args: &ArgMatches) {
     DEBUG.set(args.get_flag("debug")).unwrap();
 }
-
 
 /// Set the login builder only with the common args
 pub(super) fn build_login_common_args(args: &ArgMatches) -> LoginBuilder {

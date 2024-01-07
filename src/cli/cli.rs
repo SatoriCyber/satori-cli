@@ -1,9 +1,9 @@
-use std::{path::PathBuf, fs::File, io::BufWriter};
+use std::{fs::File, io::BufWriter, path::PathBuf};
 
 use clap::Command;
-use clap_complete::{Shell, Generator, generate};
+use clap_complete::{generate, Generator, Shell};
 
-use super::{Flow, command, parsers};
+use super::{command, parsers, Flow};
 
 pub fn run() -> Result<Flow, super::CliError> {
     let command = command::get();

@@ -29,7 +29,11 @@ impl DatabaseCredentials {
 }
 impl fmt::Debug for DatabaseCredentials {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("DatabaseCredentials").field("username", &self.username).field("password", &"*********").field("expires_at", &self.expires_at).finish()
+        f.debug_struct("DatabaseCredentials")
+            .field("username", &self.username)
+            .field("password", &"*********")
+            .field("expires_at", &self.expires_at)
+            .finish()
     }
 }
 

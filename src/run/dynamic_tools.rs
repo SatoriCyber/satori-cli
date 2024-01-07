@@ -1,11 +1,17 @@
-use minijinja::{Value, context};
+use minijinja::{context, Value};
 
-use crate::{login, helpers::{tools::{Tool, self}, datastores::DatastoreInfo, satori_console::DatabaseCredentials}};
+use crate::{
+    helpers::{
+        datastores::DatastoreInfo,
+        satori_console::DatabaseCredentials,
+        tools::{self, Tool},
+    },
+    login,
+};
 
-use super::{DynamicTool, errors};
+use super::{errors, DynamicTool};
 
 const TOOLS_TEMPLATE_NAME: &str = "tools";
-
 
 pub async fn run(params: DynamicTool) -> Result<(), errors::RunError> {
     let (credentials, datastores_info) = login::run_with_file(&params.login).await?;
@@ -43,10 +49,10 @@ pub async fn run(params: DynamicTool) -> Result<(), errors::RunError> {
 }
 /// Get the data of the tool from the tools.yaml file
 fn get_tool_data(tool_name: &str) -> Tool {
-    let tools_inventory =
-        tools::get_or_init();
-    let tool_data = tools_inventory.
-        value.iter()
+    let tools_inventory = tools::get_or_init();
+    let tool_data = tools_inventory
+        .value
+        .iter()
         .find(|tool| tool.name == tool_name)
         .expect("Tool name wasn't found");
     tool_data.clone()

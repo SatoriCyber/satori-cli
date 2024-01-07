@@ -1,28 +1,35 @@
-use std::{path::{PathBuf, Path}, env, fs::{self, File}};
+use std::{
+    env,
+    fs::{self, File},
+    path::{Path, PathBuf},
+};
 
 use clap::ArgMatches;
 
-use crate::{cli::{Flow, parsers, CliError}, run::{Run, Dbt}};
+use crate::{
+    cli::{parsers, CliError, Flow},
+    run::{Dbt, Run},
+};
 
 use super::common;
 
-
-
 pub fn build(args: &ArgMatches) -> Result<Flow, CliError> {
     parsers::common::set_debug(args);
-    let login = parsers::common::build_login_common_args(args).build().unwrap();
+    let login = parsers::common::build_login_common_args(args)
+        .build()
+        .unwrap();
     let profiles_path = get_profiles_path(args);
 
     let profile_name = get_profile()?;
 
     let target = get_target(args);
     let additional_args = common::get_additional_args(&args);
-    Ok(Flow::Run(Run::Dbt(Dbt{
+    Ok(Flow::Run(Run::Dbt(Dbt {
         login,
         profiles_path,
         profile_name,
         target,
-        additional_args
+        additional_args,
     })))
 }
 
@@ -35,28 +42,31 @@ pub fn build(args: &ArgMatches) -> Result<Flow, CliError> {
 fn get_profiles_path(args: &ArgMatches) -> PathBuf {
     match args.get_one::<PathBuf>("profile-dir") {
         Some(profile_dir) => Path::new(&profile_dir).to_path_buf(),
-        None => {
-            match env::var("DBT_PROFILES_DIR") {
-                Ok(profile_dir) => Path::new(&profile_dir).to_path_buf(),
-                Err(_) => {
-                    if fs::metadata("profiles.yml").is_ok() {
-                        println!("profiles.yml found in current directory");
-                        env::current_dir().unwrap()
-                    } else {
-                        homedir::get_my_home().expect("Failed to read home").expect("Failed to read home").to_path_buf().join(".dbt")
-                    }
+        None => match env::var("DBT_PROFILES_DIR") {
+            Ok(profile_dir) => Path::new(&profile_dir).to_path_buf(),
+            Err(_) => {
+                if fs::metadata("profiles.yml").is_ok() {
+                    println!("profiles.yml found in current directory");
+                    env::current_dir().unwrap()
+                } else {
+                    homedir::get_my_home()
+                        .expect("Failed to read home")
+                        .expect("Failed to read home")
+                        .to_path_buf()
+                        .join(".dbt")
                 }
-            
             }
-        }
-    }.join("profiles.yml")
+        },
+    }
+    .join("profiles.yml")
 }
 
 fn get_profile() -> Result<String, CliError> {
-                let file = File::open("dbt_project.yml").map_err(|err| CliError::DbtProjectFileError(err))?;
-                let reader = std::io::BufReader::new(file);
-                let dbt_project = serde_yaml::from_reader::<_, DbtProject>(reader).map_err(|err| CliError::DbtProjectParseError(err))?;
-                Ok(dbt_project.profile)
+    let file = File::open("dbt_project.yml").map_err(|err| CliError::DbtProjectFileError(err))?;
+    let reader = std::io::BufReader::new(file);
+    let dbt_project = serde_yaml::from_reader::<_, DbtProject>(reader)
+        .map_err(|err| CliError::DbtProjectParseError(err))?;
+    Ok(dbt_project.profile)
 }
 
 /// If no target specified, will use the default target
@@ -66,5 +76,5 @@ fn get_target(args: &ArgMatches) -> Option<String> {
 
 #[derive(Debug, serde::Deserialize)]
 struct DbtProject {
-    profile: String
+    profile: String,
 }

@@ -1,13 +1,13 @@
 use clap::Command;
 
-use super::{Flow, CliError};
+use super::{CliError, Flow};
 
-mod run;
-mod login;
-mod list;
-mod tools;
 mod auto_complete;
 mod common;
+mod list;
+mod login;
+mod run;
+mod tools;
 
 pub fn parse(command: Command) -> Result<Flow, CliError> {
     let matches = command.get_matches();
@@ -18,6 +18,6 @@ pub fn parse(command: Command) -> Result<Flow, CliError> {
         "list" => Ok(list::build(command_args)),
         "auto_complete" => Ok(auto_complete::build(command_args)),
         "pgpass" => Ok(tools::build(command_name, command_args)),
-        _ => panic!("No subcommand found")
+        _ => panic!("No subcommand found"),
     }
 }

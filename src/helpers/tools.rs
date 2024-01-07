@@ -4,7 +4,6 @@ use serde::Deserialize;
 
 pub const TOOLS_DATA: &str = include_str!("../../configurations/tools.yaml");
 
-
 static TOOLS: OnceLock<Tools> = OnceLock::new();
 
 pub fn get_or_init() -> &'static Tools {
@@ -20,7 +19,7 @@ pub struct Tools {
 #[derive(Deserialize, Clone)]
 pub struct Tool {
     pub name: String,
-    #[serde(default="Vec::new")]
+    #[serde(default = "Vec::new")]
     pub cli_args: Vec<CliArgs>,
     pub command: String,
     pub command_args: String,
@@ -41,7 +40,6 @@ pub struct EnvTool {
     pub name: String,
     pub value: String,
 }
-
 
 #[derive(Deserialize, Clone)]
 pub struct CliArgs {

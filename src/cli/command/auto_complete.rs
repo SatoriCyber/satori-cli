@@ -1,8 +1,7 @@
 use std::path::PathBuf;
 
-use clap::{Command, command, ArgAction, value_parser, arg};
+use clap::{arg, command, value_parser, ArgAction, Command};
 use clap_complete::Shell;
-
 
 pub fn get_command() -> Command {
     command!("auto_complete")

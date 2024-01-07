@@ -1,22 +1,21 @@
 use anyhow::{anyhow, Result};
 use helpers::logger;
 
-
 mod cli;
-mod run;
 mod helpers;
 mod list;
 mod login;
+mod run;
 mod tools;
 
 #[tokio::main]
 async fn main() {
     let flow = match cli::run() {
-    Ok(flow) => flow,
-    Err(err) => {
-        eprintln!("{}", err);
-        std::process::exit(1);
-        },
+        Ok(flow) => flow,
+        Err(err) => {
+            eprintln!("{}", err);
+            std::process::exit(1);
+        }
     };
     logger::init();
     log::debug!("running satori cli with parameters: {:?}", flow);
@@ -43,8 +42,6 @@ async fn handle_flow(flow: cli::Flow) -> Result<()> {
             Ok(())
         }
         cli::Flow::List(params) => list::run(params).map_err(|err| anyhow!("{}", err)),
-        cli::Flow::Tools(params) => {
-            tools::run(params).await.map_err(|err| anyhow!("{}", err))
-        }
+        cli::Flow::Tools(params) => tools::run(params).await.map_err(|err| anyhow!("{}", err)),
     }
 }

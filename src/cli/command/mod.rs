@@ -1,11 +1,11 @@
-use clap::{Command, command};
+use clap::{command, Command};
 
-mod run;
-pub mod login;
-mod tools;
-mod list;
-mod common_args;
 mod auto_complete;
+mod common_args;
+mod list;
+pub mod login;
+mod run;
+mod tools;
 
 pub fn get() -> Command {
     let mut main_command = command!("satori")
@@ -19,5 +19,5 @@ pub fn get() -> Command {
     for command in tools::get_commands() {
         main_command = main_command.subcommand(command);
     }
-    main_command    
+    main_command
 }

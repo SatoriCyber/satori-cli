@@ -2,7 +2,6 @@
 
 use clap::{arg, Arg, ArgAction};
 
-
 /// Args which are in use by all commands.
 pub fn get() -> Vec<Arg> {
     vec![
@@ -15,6 +14,10 @@ pub fn get() -> Vec<Arg> {
         arg!(--refresh)
             .help("refresh the local cache files")
             .action(ArgAction::SetTrue),
-        Arg::new("no-persist").long("no-persist").help("Don't persist the database credentials").action(ArgAction::SetTrue).default_value("false"),
+        Arg::new("no-persist")
+            .long("no-persist")
+            .help("Don't persist the database credentials")
+            .action(ArgAction::SetTrue)
+            .default_value("false"),
     ]
 }

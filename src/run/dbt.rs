@@ -1,22 +1,29 @@
 use core::fmt;
-use std::{path::PathBuf, collections::HashMap, fs::{File, self}};
+use std::{
+    collections::HashMap,
+    fs::{self, File},
+    path::PathBuf,
+};
 
 use regex::Regex;
 
 use crate::login;
 
-use super::{Dbt, errors};
+use super::{errors, Dbt};
 
 type ProfileName = String;
 type TargetName = String;
 
 pub async fn run(params: Dbt) -> Result<(), errors::RunError> {
     let mut profiles = get_profiles(&params.profiles_path)?;
-    let mut active_profile = profiles.value.get_mut(&params.profile_name).ok_or_else(|| {
-        errors::RunError::DbtProfileNotFound(params.profile_name.clone())
-    })?;
+    let mut active_profile = profiles
+        .value
+        .get_mut(&params.profile_name)
+        .ok_or_else(|| errors::RunError::DbtProfileNotFound(params.profile_name.clone()))?;
     log::debug!("active profile: {:?}", active_profile);
-    let target = params.target.unwrap_or_else(|| active_profile.target.clone());
+    let target = params
+        .target
+        .unwrap_or_else(|| active_profile.target.clone());
     let target_params = get_target_values(&mut active_profile, &target)?;
     log::debug!("target params: {:?}", target_params);
     let mut rewritten = false;
@@ -31,7 +38,7 @@ pub async fn run(params: Dbt) -> Result<(), errors::RunError> {
     }
     log::debug!("rewritten {:?}", rewritten);
     let (credentials, _) = login::run_with_file(&params.login).await?;
-    
+
     if rewritten {
         let bk_path = params.profiles_path.with_file_name("profiles_bkp.yml");
         fs::copy(&params.profiles_path, bk_path).map_err(|err| {
@@ -46,41 +53,49 @@ pub async fn run(params: Dbt) -> Result<(), errors::RunError> {
         })?;
     }
 
-    let profiles_path = params.profiles_path.parent().unwrap().to_str().unwrap().to_owned();
+    let profiles_path = params
+        .profiles_path
+        .parent()
+        .unwrap()
+        .to_str()
+        .unwrap()
+        .to_owned();
     let mut args = params.additional_args;
     args.extend([
         "--profiles-dir".to_string(),
         profiles_path,
         "--target".to_string(),
-        target
-        ]
-    );
+        target,
+    ]);
 
-    let mut command_results =  std::process::Command::new("dbt").args(args).envs([
-        ("PGCHANNELBINDING", "disable".to_string()),
-        ("SATORI_USERNAME", credentials.username),
-        ("SATORI_PASSWORD", credentials.password)
-        ]
-    ).spawn()?;
+    let mut command_results = std::process::Command::new("dbt")
+        .args(args)
+        .envs([
+            ("PGCHANNELBINDING", "disable".to_string()),
+            ("SATORI_USERNAME", credentials.username),
+            ("SATORI_PASSWORD", credentials.password),
+        ])
+        .spawn()?;
     command_results.wait()?;
     Ok(())
 }
 
 fn get_profiles(profiles_path: &PathBuf) -> Result<Profiles, errors::RunError> {
-    let file = File::open(profiles_path).map_err(|err| {
-        errors::RunError::DbtProfilesReadError(profiles_path.clone(), err)
-    })?;
+    let file = File::open(profiles_path)
+        .map_err(|err| errors::RunError::DbtProfilesReadError(profiles_path.clone(), err))?;
     let buf = std::io::BufReader::new(file);
-    Ok(serde_yaml::from_reader::<_, Profiles>(buf).map_err(|err| {
-        errors::RunError::DbtProfilesParseError(profiles_path.clone(), err)
-    })?)
+    Ok(serde_yaml::from_reader::<_, Profiles>(buf)
+        .map_err(|err| errors::RunError::DbtProfilesParseError(profiles_path.clone(), err))?)
 }
 
-
-fn get_target_values<'a>(profile: &'a mut ProfileValues, target: &str) -> Result<&'a mut TargetValues, errors::RunError> {
-    profile.outputs.get_mut(target).ok_or_else(|| {
-        errors::RunError::DbtTargetNotFound(target.to_string())
-    })
+fn get_target_values<'a>(
+    profile: &'a mut ProfileValues,
+    target: &str,
+) -> Result<&'a mut TargetValues, errors::RunError> {
+    profile
+        .outputs
+        .get_mut(target)
+        .ok_or_else(|| errors::RunError::DbtTargetNotFound(target.to_string()))
 }
 
 fn should_rewrite_field(field: &str) -> bool {
@@ -89,19 +104,16 @@ fn should_rewrite_field(field: &str) -> bool {
         log::debug!("Regex matched filed: {:?}", field);
         let env_var = captures.get(1).unwrap().as_str();
         // This case we are good, no need to do anything
-         !(env_var == "SATORI_USERNAME" || env_var == "SATORI_PASSWORD" )
+        !(env_var == "SATORI_USERNAME" || env_var == "SATORI_PASSWORD")
     } else {
         true
     }
-
-
 }
-
 
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(transparent)]
 struct Profiles {
-    value: HashMap<ProfileName, ProfileValues>
+    value: HashMap<ProfileName, ProfileValues>,
 }
 
 #[derive(serde::Deserialize, serde::Serialize, Debug)]
@@ -109,9 +121,7 @@ struct ProfileValues {
     // This is the default target if no target is specified
     target: String,
     outputs: HashMap<TargetName, TargetValues>,
-
 }
-
 
 #[derive(serde::Deserialize, serde::Serialize)]
 struct TargetValues {
@@ -132,4 +142,3 @@ impl fmt::Debug for TargetValues {
             .finish()
     }
 }
-

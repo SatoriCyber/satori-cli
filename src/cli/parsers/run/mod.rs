@@ -1,11 +1,9 @@
-
 mod common;
-mod dynamic_tools;
 mod dbt;
+mod dynamic_tools;
 
-
+use crate::cli::{CliError, Flow};
 use clap::ArgMatches;
-use crate::cli::{Flow, CliError};
 
 pub fn build(args: &ArgMatches) -> Result<Flow, CliError> {
     let (tool_name, tool_args) = args.subcommand().unwrap();
@@ -15,4 +13,3 @@ pub fn build(args: &ArgMatches) -> Result<Flow, CliError> {
         Ok(dynamic_tools::build(tool_name, tool_args))
     }
 }
-

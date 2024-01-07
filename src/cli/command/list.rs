@@ -1,4 +1,4 @@
-use clap::{Command, command, arg};
+use clap::{arg, command, Command};
 
 pub fn get_command() -> Command {
     command!("list")

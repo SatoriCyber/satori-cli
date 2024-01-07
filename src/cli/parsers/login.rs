@@ -1,9 +1,8 @@
 use clap::ArgMatches;
 
-use crate::cli::{Flow, command::login::CliCredentialsFormat};
+use crate::cli::{command::login::CliCredentialsFormat, Flow};
 
 use super::common::{self, build_login_common_args};
-
 
 pub fn build(args: &ArgMatches) -> Flow {
     common::set_debug(args);
