@@ -1,7 +1,7 @@
-use std::{path::PathBuf, fs::File, io::BufWriter};
+use std::{fs::File, io::BufWriter, path::PathBuf};
 
 use clap::Command;
-use clap_complete::{Shell, Generator, generate};
+use clap_complete::{generate, Generator, Shell};
 
 use crate::cli::command;
 

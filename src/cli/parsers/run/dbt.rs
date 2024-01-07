@@ -62,10 +62,10 @@ fn get_profiles_path(args: &ArgMatches) -> PathBuf {
 }
 
 fn get_profile() -> Result<String, CliError> {
-    let file = File::open("dbt_project.yml").map_err( CliError::DbtProjectFileError)?;
+    let file = File::open("dbt_project.yml").map_err(CliError::DbtProjectFileError)?;
     let reader = std::io::BufReader::new(file);
-    let dbt_project = serde_yaml::from_reader::<_, DbtProject>(reader)
-        .map_err(CliError::DbtProjectParseError)?;
+    let dbt_project =
+        serde_yaml::from_reader::<_, DbtProject>(reader).map_err(CliError::DbtProjectParseError)?;
     Ok(dbt_project.profile)
 }
 
