@@ -40,7 +40,6 @@ pub fn build(tool_name: &str, args: &ArgMatches) -> Flow {
     panic!("Tool name wasn't found");
 }
 
-
 fn get_database(args: &ArgMatches, tool_data: &Tool) -> Option<String> {
     for cli_arg in &tool_data.cli_args {
         if cli_arg.name == "database" {
@@ -48,5 +47,4 @@ fn get_database(args: &ArgMatches, tool_data: &Tool) -> Option<String> {
         }
     }
     None
-    
 }
