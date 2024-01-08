@@ -40,7 +40,7 @@ pub async fn run(params: Dbt) -> Result<(), errors::RunError> {
     let (credentials, _) = login::run_with_file(&params.login).await?;
 
     if rewritten {
-        let bk_path = params.profiles_path.with_file_name("profiles_bkp.yml");
+        let bk_path = params.profiles_path.with_file_name("profiles.bk");
         fs::copy(&params.profiles_path, bk_path).map_err(|err| {
             errors::RunError::DbtProfilesBackupError(params.profiles_path.clone(), err)
         })?;
