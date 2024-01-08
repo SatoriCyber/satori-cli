@@ -23,6 +23,7 @@ pub struct Tool {
     pub cli_args: Vec<CliArgs>,
     pub command: String,
     pub command_args: String,
+    #[serde(default = "Vec::new")]
     pub env: Vec<EnvTool>,
 }
 
