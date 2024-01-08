@@ -74,24 +74,26 @@ satori connect mongosh <datastore-host>
 ```
 
 #### DBT
-Invoke DBT.
-Just like [DBT](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles), the Satori CLI will read the `dbt_project.yml` file and will look up the profile.
-Then it will looks for the `profiles.yml` file in the following order:
+The Satori CLI invokes the the DBT tool with the Satori credentials for a specific Satori dataset. This is a requires process for running the analytics models via Satori.
+
+##### Invoking DPT
+Just like [DBT](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles), the Satori CLI reads the `dbt_project.yml` file and then looks up the target profile.
+It then searches for the `profiles.yml` file in the following order:
 1. The `--profiles-dir` command line argument.
 2. The `DBT_PROFILES_DIR` environment variable.
-3. current working directory
+3. Current working directory
 4. The `~/.dbt/profiles.yml` file.
 
 Same as [DBT selection](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles#advanced-customizing-a-profile-directory)
 
-If `--target` option is passed, Satori CLI will use the target provided, else it will use the [default](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles#setting-up-your-profile) target.
+If the `--target` option is passed (validated?), the Satori CLI then uses the target provided. If it does not use the target provided, it will use the [default](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles#setting-up-your-profile) target.
 
-The Satori CLI will then change the username and password to an environment variable that will be passed to DBT (`SATORI_USERNAME`, `SATORI_PASSWORD`).
-The Satori CLI will create a backup of the file before modification.
+The Satori CLI then changes the username and password to an environment variable that is passed to DBT (`SATORI_USERNAME`, `SATORI_PASSWORD`).
+The Satori CLI then creates a backup of the file before modification.
 
 **Arguments**
 * `--target` - The target to use. If not provided, the default target will be used.
-* `--profiles-dir` - The directory to look for the profiles.yml file. If not provided, the default will be used.
+* `--profiles-dir` - The directory looks for the profiles.yml file. If not provided, the default yml will be used.
 * `--` - Pass the rest of the arguments to the tool.
 
 **Examples**
@@ -120,7 +122,7 @@ satori pgpass
   - `--no-launch-browser` - Do not launch the browser to authenticate, instead print the URL to the terminal. 
 
 ### Login
-Obtain credentials from Satori data portal without the need to use a browser.
+Obtain credentials from the Satori data portal without the need to use a browser.
 
 **Example**:
 Display the credentials in the terminal (this can be used to integrate with other tools):
