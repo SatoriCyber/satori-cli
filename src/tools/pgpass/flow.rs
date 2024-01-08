@@ -5,9 +5,10 @@ use std::{
     fs::{File, OpenOptions},
     hash::Hasher,
     io::{BufRead, BufReader, Seek, SeekFrom, Write},
-    os::unix::fs::OpenOptionsExt,
     path::{Path, PathBuf},
 };
+#[cfg(target_family = "unix")]
+use std::os::unix::fs::OpenOptionsExt;
 
 use crate::{
     helpers::{datastores::DatastoresInfo, satori_console::DatabaseCredentials},
@@ -78,18 +79,20 @@ fn create_pgpass_file(pgpass_file: PathBuf) -> Result<File, errors::ToolsErrors>
     let mut open_options = OpenOptions::new();
     open_options.write(true).create(true);
 
-    match std::env::consts::OS {
-        "windows" => {
-            //TODO: Do we want to set the file permissions on windows?
-            log::debug!("Need to implement the windows mode");
-        }
-        _ => {
-            open_options.mode(0o600);
-        }
-    };
+    set_permissions(&mut open_options);
+    
     open_options
         .open(pgpass_file)
         .map_err(errors::ToolsErrors::FailedToCreatePgpassFile)
+}
+
+#[cfg(target_family = "unix")]
+fn set_permissions(open_options: &mut OpenOptions) {
+    open_options.mode(0o600);
+}
+#[cfg(target_family = "windows")]
+fn set_permissions(_open_options: &mut OpenOptions) {
+    log::debug!("Need to implement the windows mode");
 }
 
 #[derive(Eq)]
