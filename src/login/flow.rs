@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 use std::thread::sleep;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use std::{fs, io};
 
 use base64::engine::general_purpose;
@@ -21,6 +21,8 @@ use super::errors;
 
 const OAUTH_URI: &str = "oauth/authorize";
 const CREDENTIALS_FILE_NAME: &str = "credentials.json";
+// 15 minutes
+const JWT_ACCEPT_TIMEOUT_SECONDS: Duration = Duration::from_secs(60 * 15);
 
 type CodeChallenge = String;
 type CodeVerifier = String;
@@ -161,11 +163,7 @@ async fn get_jwt(
         log::info!("Please open the following url in your browser: {}", url);
     }
 
-    while JWT.get().is_none() {
-        log::debug!("Waiting for JWT to be set");
-        sleep(Duration::from_secs(1));
-    }
-    Ok(JWT.get().unwrap().clone())
+    wait_till_jwt()
 }
 
 fn write_to_file(database_credentials: &DatabaseCredentials) -> Result<(), errors::LoginError> {
@@ -262,5 +260,19 @@ fn read_credentials_from_file(file_path: &PathBuf) -> Option<DatabaseCredentials
             log::debug!("Failed to read file: {}", err);
             None
         }
+    }
+}
+
+fn wait_till_jwt() -> Result<String, errors::LoginError> {
+    let start_time = Instant::now();
+    loop {
+        if let Some(jwt) = JWT.get() {
+            return Ok(jwt.clone());
+        }
+        log::debug!("Waiting for JWT to be set");
+        if Instant::now().duration_since(start_time) >= JWT_ACCEPT_TIMEOUT_SECONDS {
+            return Err(errors::LoginError::JwtTimeout);
+        }
+        sleep(Duration::from_secs(5));
     }
 }

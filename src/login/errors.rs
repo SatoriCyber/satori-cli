@@ -22,6 +22,8 @@ pub enum LoginError {
     DatastoresError(#[from] datastores::errors::DatastoresError),
     #[error("Failed to parse url: {0}")]
     UrlParseError(String),
+    #[error("Timeout waiting for JWT")]
+    JwtTimeout,
 }
 
 #[derive(Error, Debug)]
