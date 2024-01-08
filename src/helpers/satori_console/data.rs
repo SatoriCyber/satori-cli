@@ -45,8 +45,10 @@ pub struct OauthResponse {
 }
 
 #[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UserProfile {
     pub id: String,
+    pub account_id: String,
 }
 
 #[derive(Debug, serde::Deserialize)]
