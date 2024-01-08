@@ -8,13 +8,13 @@ pub type DatastoreName = String;
 
 #[derive(Deserialize, Debug, Clone, Serialize)]
 pub struct DatastoresInfo {
-    pub satori_host: String,
+    pub account_id: String,
     pub datastores: HashMap<DatastoreName, DatastoreInfo>,
 }
 
 impl DatastoresInfo {
     pub fn new_from_console_response(
-        satori_host: String,
+        account_id: String,
         value: HashSet<DatastoreAccessDetails>,
     ) -> Self {
         let datastores = value
@@ -27,7 +27,7 @@ impl DatastoresInfo {
             })
             .collect();
         Self {
-            satori_host,
+            account_id,
             datastores,
         }
     }
