@@ -11,6 +11,7 @@ The Satori CLI enables you to access all of your available datasets from the com
       - [Supported Tools](#supported-tools)
       - [Arguments](#arguments)
       - [psql](#psql)
+      - [mongosh](#mongosh)
     - [PgPass](#pgpass)
       - [Arguments](#arguments-1)
     - [Login](#login)
@@ -61,6 +62,14 @@ Triggers a psql session with the given datastore and database.
 Passing additional args to the tool
 ```bash
 satori run psql <datastore-host> -d <database> -- -c 'select 1'
+```
+
+
+#### mongosh
+Triggers a mongosh session with the given datastore.
+
+``` bash
+satori connect mongosh <datastore-host>
 ```
 
 ### PgPass

@@ -10,3 +10,6 @@
     - name: PGCHANNELBINDING
       value: disable
   command_args: -h {{ host }} -U {{ user }} -d {{ database }} --port {{ port }}
+- name: mongosh
+  command: mongosh
+  command_args: "{{host}} --username {{ user }} --password {{ password }}"
