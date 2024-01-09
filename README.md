@@ -76,7 +76,7 @@ satori connect mongosh <datastore-host>
 #### DBT
 The Satori CLI invokes the the DBT tool with the Satori credentials for a specific Satori dataset. This is a requires process for running the analytics models via Satori.
 
-##### Invoking DPT
+##### Invoking DBT
 Just like [DBT](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles), the Satori CLI reads the `dbt_project.yml` file and then looks up the target profile.
 It then searches for the `profiles.yml` file in the following order:
 1. The `--profiles-dir` command line argument.
