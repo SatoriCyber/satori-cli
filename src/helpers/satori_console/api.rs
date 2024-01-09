@@ -2,12 +2,14 @@ use std::collections::HashSet;
 
 use reqwest::{
     header::{HeaderMap, ACCEPT, AUTHORIZATION, CONTENT_LENGTH, CONTENT_TYPE, USER_AGENT},
-    Url,
+    IntoUrl, Method, StatusCode, Url,
 };
+use serde::de::DeserializeOwned;
 
 use super::{
-    errors::SatoriError, DatabaseCredentials, DatastoreAccessDetails, DatastoreAccessDetailsDbs,
-    OauthResponse, UserProfile,
+    errors::{self, SatoriError},
+    DatabaseCredentials, DatastoreAccessDetails, DatastoreAccessDetailsDbs, OauthResponse,
+    UserProfile,
 };
 
 const PAGE_SIZE: u8 = 100;
@@ -18,6 +20,7 @@ pub async fn generate_token_oauth(
     code: String,
     code_verifier: String,
     client_id: &str,
+    verify_cert: bool,
 ) -> Result<OauthResponse, SatoriError> {
     let address = format!("{domain}/api/oauth/token");
 
@@ -37,8 +40,10 @@ pub async fn generate_token_oauth(
         CONTENT_TYPE,
         "application/x-www-form-urlencoded".parse().unwrap(),
     );
-
-    let res = reqwest::Client::new()
+    let req = reqwest::ClientBuilder::new().danger_accept_invalid_certs(verify_cert);
+    let res = req
+        .build()
+        .unwrap()
         .post(url)
         .headers(headers)
         .send()
@@ -54,34 +59,36 @@ pub async fn get_database_credentials(
     client_id: &str,
     jwt: &str,
     user_id: &str,
+    invalid_cert: bool,
 ) -> Result<DatabaseCredentials, SatoriError> {
     let address = format!("{domain}/api/users/{user_id}/database-credentials");
-    let res = reqwest::Client::new()
-        .put(address)
-        .headers(get_headers_with_jwt(client_id, jwt))
-        .send()
-        .await?;
-
-    handle_status_code(reqwest::StatusCode::OK, res.status())?;
-    res.json::<DatabaseCredentials>()
-        .await
-        .map_err(SatoriError::Json)
+    make_request(
+        &address,
+        Method::PUT,
+        jwt,
+        client_id,
+        invalid_cert,
+        StatusCode::OK,
+    )
+    .await
 }
 
 pub async fn get_user_info(
     domain: &str,
     client_id: &str,
     jwt: &str,
+    invalid_cert: bool,
 ) -> Result<UserProfile, SatoriError> {
     let address = format!("{domain}/api/users/me/profile");
-    let res = reqwest::Client::new()
-        .get(address)
-        .headers(get_headers_with_jwt(client_id, jwt))
-        .send()
-        .await?;
-
-    handle_status_code(reqwest::StatusCode::OK, res.status())?;
-    res.json::<UserProfile>().await.map_err(SatoriError::Json)
+    make_request(
+        &address,
+        Method::GET,
+        jwt,
+        client_id,
+        invalid_cert,
+        StatusCode::OK,
+    )
+    .await
 }
 
 //TODO: Consider instead of pulling all the information
@@ -91,6 +98,7 @@ pub async fn datastores_access_details(
     domain: &str,
     client_id: &str,
     jwt: &str,
+    invalid_cert: bool,
 ) -> Result<HashSet<DatastoreAccessDetails>, SatoriError> {
     let mut page: u8 = 0;
 
@@ -98,7 +106,8 @@ pub async fn datastores_access_details(
 
     log::info!("Retrieving datastores information, it might take a while");
 
-    let first_call = get_datastore_access_details_internal(&address, client_id, jwt, page).await?;
+    let first_call =
+        get_datastore_access_details_internal(&address, client_id, jwt, invalid_cert, page).await?;
     let mut results = HashSet::from_iter(first_call.datastore_details);
     let mut fetched_records = first_call.records.len();
     page += 1;
@@ -110,7 +119,8 @@ pub async fn datastores_access_details(
             first_call.count
         );
         let new_records =
-            get_datastore_access_details_internal(&address, client_id, jwt, page).await?;
+            get_datastore_access_details_internal(&address, client_id, jwt, invalid_cert, page)
+                .await?;
         fetched_records += new_records.records.len();
         page += 1;
         results.extend(new_records.datastore_details);
@@ -127,19 +137,53 @@ async fn get_datastore_access_details_internal(
     address: &str,
     client_id: &str,
     jwt: &str,
+    invalid_cert: bool,
     page: u8,
 ) -> Result<DatastoreAccessDetailsDbs, SatoriError> {
-    let res = reqwest::Client::new()
-        .get(address)
-        .query(&vec![("pageSize", &PAGE_SIZE), ("page", &page)])
-        .headers(get_headers_with_jwt(client_id, jwt))
-        .send()
-        .await?;
+    let url = Url::parse_with_params(
+        address,
+        &[
+            ("pageSize", &PAGE_SIZE.to_string()),
+            ("page", &page.to_string()),
+        ],
+    )
+    .unwrap();
+    make_request(
+        url,
+        Method::GET,
+        jwt,
+        client_id,
+        invalid_cert,
+        StatusCode::OK,
+    )
+    .await
+}
 
-    handle_status_code(reqwest::StatusCode::OK, res.status())?;
-    res.json::<DatastoreAccessDetailsDbs>()
+async fn make_request<T, U>(
+    url: U,
+    method: reqwest::Method,
+    jwt: &str,
+    client_id: &str,
+    invalid_cert: bool,
+    expected_status_code: StatusCode,
+) -> Result<T, SatoriError>
+where
+    T: DeserializeOwned,
+    U: IntoUrl,
+{
+    let client = reqwest::ClientBuilder::new()
+        .danger_accept_invalid_certs(invalid_cert)
+        .default_headers(get_headers_with_jwt(client_id, jwt));
+
+    let res = client
+        .build()
+        .unwrap()
+        .request(method, url)
+        .send()
         .await
-        .map_err(SatoriError::Json)
+        .map_err(errors::handle_reqwest_error)?;
+    handle_status_code(expected_status_code, res.status())?;
+    res.json::<T>().await.map_err(SatoriError::Json)
 }
 
 fn get_headers_with_jwt(client_id: &str, jwt: &str) -> HeaderMap {

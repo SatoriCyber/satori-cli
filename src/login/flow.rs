@@ -43,10 +43,19 @@ pub async fn run_with_file(
         (credentials, None, None)
     } else {
         log::debug!("Failed to read credentials from file, starting login flow");
-        let jwt = get_jwt(params.port, params.domain.clone(), params.open_browser).await?;
-        let user_info = satori_console::get_user_info(&params.domain, CLIENT_ID, &jwt).await?;
+        let jwt = get_jwt(
+            params.port,
+            params.domain.clone(),
+            params.open_browser,
+            params.invalid_cert,
+        )
+        .await?;
+        let user_info =
+            satori_console::get_user_info(&params.domain, CLIENT_ID, &jwt, params.invalid_cert)
+                .await?;
         let database_credentials =
-            get_database_credentials(&params.domain, &user_info.id, &jwt).await?;
+            get_database_credentials(&params.domain, &user_info.id, &jwt, params.invalid_cert)
+                .await?;
         if params.write_to_file {
             write_to_file(&database_credentials)?;
         }
@@ -68,18 +77,37 @@ pub async fn run_with_file(
         None => {
             let jwt = match jwt {
                 Some(jwt) => jwt,
-                None => get_jwt(params.port, params.domain.to_owned(), params.open_browser).await?,
+                None => {
+                    get_jwt(
+                        params.port,
+                        params.domain.to_owned(),
+                        params.open_browser,
+                        params.invalid_cert,
+                    )
+                    .await?
+                }
             };
             let account_id = match account_id {
                 Some(account_id) => account_id,
                 None => {
-                    let user_info =
-                        satori_console::get_user_info(&params.domain, CLIENT_ID, &jwt).await?;
+                    let user_info = satori_console::get_user_info(
+                        &params.domain,
+                        CLIENT_ID,
+                        &jwt,
+                        params.invalid_cert,
+                    )
+                    .await?;
                     user_info.account_id
                 }
             };
-            let ds_info =
-                datastores::get_from_console(&jwt, &params.domain, CLIENT_ID, account_id).await?;
+            let ds_info = datastores::get_from_console(
+                &jwt,
+                &params.domain,
+                CLIENT_ID,
+                account_id,
+                params.invalid_cert,
+            )
+            .await?;
             datastores::file::write(&ds_info)?;
             ds_info
         }
@@ -90,10 +118,17 @@ pub async fn run_with_file(
 /// Login to Satori, save the JWT, returns the credentials
 /// Write to file if it is part of the parameters
 pub async fn run(params: &Login) -> Result<(), errors::LoginError> {
-    let jwt = get_jwt(params.port, params.domain.clone(), params.open_browser).await?;
-    let user_info = satori_console::get_user_info(&params.domain, CLIENT_ID, &jwt).await?;
+    let jwt = get_jwt(
+        params.port,
+        params.domain.clone(),
+        params.open_browser,
+        params.invalid_cert,
+    )
+    .await?;
+    let user_info =
+        satori_console::get_user_info(&params.domain, CLIENT_ID, &jwt, params.invalid_cert).await?;
     let database_credentials =
-        get_database_credentials(&user_info.id, &params.domain, &jwt).await?;
+        get_database_credentials(&user_info.id, &params.domain, &jwt, params.invalid_cert).await?;
     if params.write_to_file {
         write_to_file(&database_credentials)?;
     } else {
@@ -103,9 +138,14 @@ pub async fn run(params: &Login) -> Result<(), errors::LoginError> {
         );
     }
     if refresh_datastores(params, &user_info) {
-        let ds_info =
-            datastores::get_from_console(&jwt, &params.domain, CLIENT_ID, user_info.account_id)
-                .await?;
+        let ds_info = datastores::get_from_console(
+            &jwt,
+            &params.domain,
+            CLIENT_ID,
+            user_info.account_id,
+            params.invalid_cert,
+        )
+        .await?;
         datastores::file::write(&ds_info)?;
     }
     Ok(())
@@ -135,16 +175,21 @@ async fn get_database_credentials(
     user_id: &str,
     domain: &str,
     jwt: &str,
+    invalid_cert: bool,
 ) -> Result<DatabaseCredentials, errors::LoginError> {
-    Ok(satori_console::get_database_credentials(domain, CLIENT_ID, jwt, user_id).await?)
+    Ok(
+        satori_console::get_database_credentials(domain, CLIENT_ID, jwt, user_id, invalid_cert)
+            .await?,
+    )
 }
 
 async fn get_jwt(
     port: u16,
     domain: String,
     open_browser: bool,
+    invalid_cert: bool,
 ) -> Result<String, errors::LoginError> {
-    let addr = web_server::start(port, domain.clone()).await?;
+    let addr = web_server::start(port, domain.clone(), invalid_cert).await?;
 
     let (code_challenge, code_verifier) = generate_code_challenge_pair();
     CODE_VERIFIER.set(code_verifier).unwrap();

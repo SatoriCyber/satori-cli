@@ -20,12 +20,16 @@ struct OauthQueryParams {
     code: String,
 }
 
-pub async fn start(port: u16, domain: String) -> Result<SocketAddr, errors::LoginError> {
+pub async fn start(
+    port: u16,
+    domain: String,
+    invalid_cert: bool,
+) -> Result<SocketAddr, errors::LoginError> {
     let authorize = warp::path::end()
         .and(warp::query::<OauthQueryParams>())
         .and_then(move |params| {
             let domain = domain.to_owned();
-            async move { oauth_response(params, domain).await }
+            async move { oauth_response(params, domain, invalid_cert).await }
         });
 
     let (addr, server) = warp::serve(authorize).try_bind_ephemeral(([127, 0, 0, 1], port))?;
@@ -36,6 +40,7 @@ pub async fn start(port: u16, domain: String) -> Result<SocketAddr, errors::Logi
 async fn oauth_response(
     params: OauthQueryParams,
     domain: String,
+    invalid_cert: bool,
 ) -> Result<impl warp::Reply, warp::Rejection> {
     let expected_state = match EXPECTED_STATE.get() {
         Some(state) => state,
@@ -67,6 +72,7 @@ async fn oauth_response(
         params.code,
         code_verifier.clone(),
         CLIENT_ID,
+        invalid_cert,
     )
     .await
     .unwrap();
