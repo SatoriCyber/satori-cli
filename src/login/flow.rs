@@ -1,3 +1,4 @@
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
@@ -192,22 +193,68 @@ async fn get_jwt(
     let addr = web_server::start(port, domain.clone(), invalid_cert).await?;
 
     let (code_challenge, code_verifier) = generate_code_challenge_pair();
-    CODE_VERIFIER.set(code_verifier).unwrap();
 
     let state = build_state();
     EXPECTED_STATE.set(state.clone()).unwrap();
 
-    let url = build_oauth_uri(&domain, addr.port(), state, code_challenge)?;
-    let print_url = if open_browser {
+    if open_browser {
         // Need to handle a flow where we unable to open url to print the url
-        webbrowser::open(url.as_str()).is_err()
+        with_browser(code_verifier, addr, &domain, &state, &code_challenge)
     } else {
-        true
-    };
-    if print_url {
-        log::info!("Please open the following url in your browser: {}", url);
+        no_browser(
+            &domain,
+            &state,
+            code_challenge,
+            &code_verifier,
+            invalid_cert,
+        )
+        .await
     }
+}
 
+async fn no_browser(
+    domain: &str,
+    state: &str,
+    code_challenge: String,
+    code_verifier: &str,
+    invalid_cert: bool,
+) -> Result<String, errors::LoginError> {
+    let redirect_url = format!("{domain}/oauth/authorize/finish");
+    let url = build_oauth_uri(domain, state, &code_challenge, &redirect_url)?;
+    log::info!(
+        "Go to the following link in your browser:\n\n {}\nEnter authorization code:",
+        url
+    );
+    io::stdout().flush().unwrap();
+    let mut jwt_base_64 = String::new();
+
+    io::stdin()
+        .read_line(&mut jwt_base_64)
+        .map_err(errors::LoginError::CodeReadError)?;
+    let code = general_purpose::STANDARD.decode(jwt_base_64.trim().as_bytes())?;
+    let code = String::from_utf8(code).unwrap();
+    let code = extract_code(&code)?;
+
+    let res =
+        satori_console::generate_token_oauth(domain, code, code_verifier, CLIENT_ID, invalid_cert)
+            .await?;
+    Ok(res.access_token)
+}
+
+fn with_browser(
+    code_verifier: String,
+    addr: std::net::SocketAddr,
+    domain: &str,
+    state: &str,
+    code_challenge: &str,
+) -> Result<String, errors::LoginError> {
+    CODE_VERIFIER.set(code_verifier).unwrap();
+    let port = addr.port();
+    let redirect_url = format!("http://localhost:{port}");
+    let url = build_oauth_uri(domain, state, code_challenge, &redirect_url)?;
+    if webbrowser::open(url.as_str()).is_err() {
+        log::info!("An error ocurred, while trying to open browser\n Go to the following link in your browser:\n {}", url);
+    }
     wait_till_jwt()
 }
 
@@ -247,19 +294,18 @@ fn build_state() -> String {
 
 fn build_oauth_uri(
     oauth_domain: &str,
-    local_port: u16,
-    state: String,
-    code_challenge: String,
+    state: &str,
+    code_challenge: &str,
+    redirect_url: &str,
 ) -> Result<Url, errors::LoginError> {
-    let redirect_url = format!("http://localhost:{local_port}");
     Url::parse_with_params(
         format!("{oauth_domain}/{OAUTH_URI}").as_str(),
         &[
             ("redirect_uri", redirect_url),
-            ("response_type", "code".to_owned()),
-            ("client_id", CLIENT_ID.to_owned()),
+            ("response_type", "code"),
+            ("client_id", CLIENT_ID),
             ("code_challenge", code_challenge),
-            ("code_challenge_method", "S256".to_owned()),
+            ("code_challenge_method", "S256"),
             ("state", state),
         ],
     )
@@ -320,4 +366,20 @@ fn wait_till_jwt() -> Result<String, errors::LoginError> {
         }
         sleep(Duration::from_secs(5));
     }
+}
+
+fn extract_code(input_string: &str) -> Result<&str, errors::LoginError> {
+    let pairs: Vec<&str> = input_string.split('&').collect();
+
+    // Define the key you want to extract
+    let key_to_extract = "code";
+
+    // Find the pair with the desired key
+    for pair in pairs {
+        let parts: Vec<&str> = pair.split('=').collect();
+        if parts.len() == 2 && parts[0] == key_to_extract {
+            return Ok(parts[1]);
+        }
+    }
+    Err(errors::LoginError::CodeNotFound)
 }
