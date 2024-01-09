@@ -27,19 +27,19 @@ brew install satori_cli
 ```
 
 **Enable auto-completion**
-add the following line to your shell configuration file (e.g., ~/.bashrc or ~/.zshrc):
+Add the following line to your shell configuration file (e.g., ~/.bashrc or ~/.zshrc):
 ```bash 
   source "$(brew --prefix)/etc/bash_completion.d/satori_auto_complete.zsh"
 ```
-Once the login is completed one time, the auto-complete will work.
+Once the login is completed (one time), the auto-complete will work.
 
 **first time use**
-For auto-complete to work run the [login](#login) command.
+To enable auto-complete, run the [login](#login) command.
 
 ## Usage
 ### Run
 Invokes a CLI tool using Satori authentication.
-If the credentials already exist, the CLI tool loads from them from the cache. If the credentials do not already exist then they are invoked and authenticated.
+If the credentials already exist, the CLI tool loads them from the cache. If the credentials do not already exist then they are invoked and authenticated.
 
 #### Supported Tools
 The Satori CLI supports psql
