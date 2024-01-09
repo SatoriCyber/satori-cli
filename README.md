@@ -86,7 +86,7 @@ It then searches for the `profiles.yml` file in the following order:
 
 Same as [DBT selection](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles#advanced-customizing-a-profile-directory)
 
-If the `--target` option is passed (validated?), the Satori CLI then uses the target provided. If it does not use the target provided, it will use the [default](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles#setting-up-your-profile) target.
+If the `--target` option is used, the Satori CLI then uses the target provided. If it does not use the target provided, it will use the [default](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles#setting-up-your-profile) target.
 
 The Satori CLI then changes the username and password to an environment variable that is passed to DBT (`SATORI_USERNAME`, `SATORI_PASSWORD`).
 The Satori CLI then creates a backup of the file before modification.
