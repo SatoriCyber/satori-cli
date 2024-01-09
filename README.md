@@ -13,6 +13,7 @@ The Satori CLI enables you to access all of your available datasets from the com
       - [psql](#psql)
       - [mongosh](#mongosh)
       - [DBT](#dbt)
+        - [Invoking DBT](#invoking-dbt)
     - [PgPass](#pgpass)
       - [Arguments](#arguments-1)
     - [Login](#login)
@@ -43,7 +44,7 @@ Invokes a CLI tool using Satori authentication.
 If the credentials already exist, the CLI tool loads them from the cache. If the credentials do not already exist then they are invoked and authenticated.
 
 #### Supported Tools
-The Satori CLI supports psql
+The Satori CLI supports psql, dbt, mongosh
 
 #### Arguments
  - `--no-persist` - Does not persist the credentials to the cache.
