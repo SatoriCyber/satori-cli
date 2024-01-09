@@ -17,8 +17,8 @@ const PAGE_SIZE: u8 = 100;
 /// Generate a JWT token from Satori
 pub async fn generate_token_oauth(
     domain: &str,
-    code: String,
-    code_verifier: String,
+    code: &str,
+    code_verifier: &str,
     client_id: &str,
     verify_cert: bool,
 ) -> Result<OauthResponse, SatoriError> {
@@ -28,9 +28,9 @@ pub async fn generate_token_oauth(
         &address,
         &[
             ("grant_type", "authorization_code"),
-            ("code", &code),
+            ("code", code),
             ("client_id", client_id),
-            ("code_verifier", &code_verifier),
+            ("code_verifier", code_verifier),
         ],
     )
     .unwrap();

@@ -69,8 +69,8 @@ async fn oauth_response(
 
     let oauth_response = satori_console::generate_token_oauth(
         &domain,
-        params.code,
-        code_verifier.clone(),
+        &params.code,
+        code_verifier,
         CLIENT_ID,
         invalid_cert,
     )

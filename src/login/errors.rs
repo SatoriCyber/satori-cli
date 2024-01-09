@@ -24,6 +24,12 @@ pub enum LoginError {
     UrlParseError(String),
     #[error("Timeout waiting for JWT")]
     JwtTimeout,
+    #[error("Failed to read Authorization code from user input: {0}")]
+    CodeReadError(std::io::Error),
+    #[error("Failed to decode Authorization code: {0}")]
+    CodeDecodeError(#[from] base64::DecodeError),
+    #[error("Failed to find code in Authorization code")]
+    CodeNotFound,
 }
 
 #[derive(Error, Debug)]
