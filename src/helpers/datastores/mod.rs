@@ -11,8 +11,10 @@ pub async fn get_from_console(
     domain: &str,
     client_id: &str,
     account_id: String,
+    invalid_cert: bool,
 ) -> Result<DatastoresInfo, errors::DatastoresError> {
-    let res = satori_console::datastores_access_details(domain, client_id, jwt).await?;
+    let res =
+        satori_console::datastores_access_details(domain, client_id, jwt, invalid_cert).await?;
     let datastores_info = DatastoresInfo::new_from_console_response(account_id, res);
     Ok(datastores_info)
 }

@@ -19,8 +19,13 @@ pub(super) fn build_login_common_args(args: &ArgMatches) -> LoginBuilder {
     } else {
         login_builder
     };
-    if args.get_flag("no-launch-browser") {
+    let login_builder = if args.get_flag("no-launch-browser") {
         login_builder.open_browser(false)
+    } else {
+        login_builder
+    };
+    if args.get_flag("invalid_cert") {
+        login_builder.invalid_cert(true)
     } else {
         login_builder
     }

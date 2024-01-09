@@ -28,6 +28,8 @@ pub struct Login {
     pub format: CredentialsFormat,
     #[builder(default = "false")]
     pub refresh: bool,
+    #[builder(default = "false")]
+    pub invalid_cert: bool,
 }
 
 #[derive(Debug)]
