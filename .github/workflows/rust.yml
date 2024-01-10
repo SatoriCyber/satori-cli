@@ -19,6 +19,13 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        if-no-files-found: error
+        name: satori_linux
+        path: ./target/debug/satori
+  
   build-windows:
     runs-on: windows-latest
 
@@ -28,6 +35,13 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        if-no-files-found: error
+        name: satori.exe
+        path: ./target/debug/satori.exe
+  
   build-mac:
     runs-on: macos-latest
 
@@ -37,6 +51,13 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose           
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        if-no-files-found: error
+        name: satori_mac
+        path: ./target/debug/satori
+  
   clippy:
     runs-on: ubuntu-latest
     steps:  
@@ -45,12 +66,14 @@ jobs:
       run: cargo build --verbose    
     - name: clippy
       run: cargo clippy -- -D warnings
+
   audit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Audit
         run: cargo audit
+  
   fmt:
     runs-on: ubuntu-latest
     steps:  

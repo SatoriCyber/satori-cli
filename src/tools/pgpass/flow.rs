@@ -18,7 +18,10 @@ use crate::{
 
 use super::PgPass;
 
+#[cfg(target_family = "unix")]
 const PGPASS_FILE_NAME: &str = ".pgpass";
+#[cfg(target_family = "windows")]
+const PGPASS_FILE_NAME: &str = "pgpass.conf";
 
 pub async fn run(params: PgPass) -> Result<(), errors::ToolsErrors> {
     let (credentials, datastores_info) = login::run_with_file(&params.login).await?;
@@ -61,10 +64,24 @@ pub async fn run(params: PgPass) -> Result<(), errors::ToolsErrors> {
     Ok(())
 }
 
+#[cfg(target_family = "unix")]
 fn get_pgpass_file_path() -> Result<PathBuf, errors::ToolsErrors> {
     Ok(homedir::get_my_home()?
         .ok_or_else(|| errors::ToolsErrors::HomeDirNotFound)?
         .join(Path::new(PGPASS_FILE_NAME)))
+}
+
+#[cfg(target_family = "windows")]
+fn get_pgpass_file_path() -> Result<PathBuf, errors::ToolsErrors> {
+    let pgpass_dir = homedir::get_my_home()?
+        .ok_or_else(|| errors::ToolsErrors::HomeDirNotFound)?
+        .join(Path::new("AppData/Roaming/postgresql"));
+    if !pgpass_dir.exists() {
+        std::fs::create_dir(&pgpass_dir).map_err(|err| {
+            errors::ToolsErrors::FailedToCreateDirectories(err, pgpass_dir.clone())
+        })?;
+    }
+    Ok(pgpass_dir.join(Path::new(PGPASS_FILE_NAME)))
 }
 
 fn get_pgpass_file(pgpass_file: PathBuf) -> Result<File, errors::ToolsErrors> {
