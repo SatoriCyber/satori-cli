@@ -19,13 +19,12 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
-    - name: Upload artifacts
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      uses: softprops/action-gh-release@v1
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
       with:
-        files: |
-          ./target/debug/satori      
+        if-no-files-found: error
+        name: satori_linux
+        path: ./target/debug/satori
   
   build-windows:
     runs-on: windows-latest
@@ -36,13 +35,12 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose
-    - name: Upload artifacts
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      uses: softprops/action-gh-release@v1
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
       with:
-        files: |
-          ./target/debug/satori.exe
+        if-no-files-found: error
+        name: satori.exe
+        path: ./target/debug/satori.exe
   
   build-mac:
     runs-on: macos-latest
@@ -53,13 +51,12 @@ jobs:
       run: cargo build --verbose
     - name: Run tests
       run: cargo test --verbose           
-    - name: Upload artifacts
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      uses: softprops/action-gh-release@v1
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
       with:
-        files: |
-          ./target/debug/satori
+        if-no-files-found: error
+        name: satori_mac
+        path: ./target/debug/satori
   
   clippy:
     runs-on: ubuntu-latest
