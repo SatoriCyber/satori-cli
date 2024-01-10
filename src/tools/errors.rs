@@ -18,4 +18,7 @@ pub enum ToolsErrors {
     FailedWritingToPgpassFile(std::io::Error),
     #[error("Read line error: {0}")]
     ReadLineError(std::io::Error),
+    #[cfg(target_family = "windows")]
+    #[error("Failed to create directory for path {1}: {0}")]
+    FailedToCreateDirectories(std::io::Error, std::path::PathBuf),
 }
