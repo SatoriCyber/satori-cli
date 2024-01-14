@@ -121,12 +121,11 @@ impl DatastoreType {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
-    fn test_api_server(){
+    fn test_api_server() {
         let as_str = "API_SERVER";
         let as_type: DatastoreType = serde_json::from_str(&format!("\"{}\"", as_str)).unwrap();
         assert_eq!(as_type, DatastoreType::ApiServer);
