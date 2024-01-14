@@ -102,6 +102,7 @@ pub enum DatastoreType {
     Mssql,
     Synapse,
     Mysql,
+    #[serde(rename = "API_SERVER")]
     ApiServer,
     MariaDb,
     CockroachDb,
