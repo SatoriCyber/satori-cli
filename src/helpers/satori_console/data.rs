@@ -92,7 +92,7 @@ impl Hash for DatastoreAccessDetails {
 }
 
 #[derive(Debug, serde::Deserialize, Clone, Serialize, PartialEq)]
-#[serde(rename_all = "UPPERCASE")]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum DatastoreType {
     Snowflake,
     Redshift,
@@ -102,7 +102,6 @@ pub enum DatastoreType {
     Mssql,
     Synapse,
     Mysql,
-    #[serde(rename = "API_SERVER")]
     ApiServer,
     MariaDb,
     CockroachDb,
@@ -119,5 +118,17 @@ impl DatastoreType {
             || self == &DatastoreType::CockroachDb
             || self == &DatastoreType::Redshift
             || self == &DatastoreType::Greenplum
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_api_server(){
+        let as_str = "API_SERVER";
+        let as_type: DatastoreType = serde_json::from_str(&format!("\"{}\"", as_str)).unwrap();
+        assert_eq!(as_type, DatastoreType::ApiServer);
     }
 }
