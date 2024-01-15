@@ -26,16 +26,16 @@ pub fn build(args: &ArgMatches) -> Result<Flow, CliError> {
     let additional_args = common::get_additional_args(args);
     Ok(Flow::Run(Run::Dbt(Dbt {
         login,
-        profiles_path,
-        profile_name,
         target,
+        profile_name,
+        profiles_path,
         additional_args,
     })))
 }
 
 /// DBT select the profiles directory as follow:
-/// 1. --profile-dir argument is passed
-/// 2. DBT_PROFILES_DIR environment variable is set
+/// 1. `--profile-dir` argument is passed
+/// 2. `DBT_PROFILES_DIR` environment variable is set
 /// 3. profiles.yml file is found in the current directory
 /// 4. default to ~/.dbt directory
 /// The file is always named profiles.yml
@@ -52,7 +52,6 @@ fn get_profiles_path(args: &ArgMatches) -> PathBuf {
                     homedir::get_my_home()
                         .expect("Failed to read home")
                         .expect("Failed to read home")
-                        .to_path_buf()
                         .join(".dbt")
                 }
             }

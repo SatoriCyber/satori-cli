@@ -12,7 +12,7 @@ fn handle_datastores() -> Result<(), ListErrors> {
     let datastores_name = info
         .datastores
         .keys()
-        .map(|d| d.to_string())
+        .map(std::string::ToString::to_string)
         .collect::<Vec<String>>()
         .join("\n");
     println!("{datastores_name}");

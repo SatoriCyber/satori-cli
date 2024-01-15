@@ -12,12 +12,12 @@ use reqwest::Url;
 use sha2::{Digest, Sha256};
 
 use crate::helpers::datastores::DatastoresInfo;
-use crate::helpers::satori_console::{self, DatabaseCredentials};
+use crate::helpers::satori_console;
 use crate::helpers::{datastores, default_app_folder};
 use crate::login::data::{CODE_VERIFIER, EXPECTED_STATE, JWT};
 use crate::login::web_server;
 
-use super::data::{CredentialsFormat, Login, CLIENT_ID};
+use super::data::{Credentials, CredentialsFormat, Login, CLIENT_ID};
 use super::errors;
 
 const OAUTH_URI: &str = "oauth/authorize";
@@ -31,7 +31,7 @@ type CodeVerifier = String;
 /// Try to load the config from file, if it fails triggers the login flow
 pub async fn run_with_file(
     params: &Login,
-) -> Result<(DatabaseCredentials, DatastoresInfo), errors::LoginError> {
+) -> Result<(Credentials, DatastoresInfo), errors::LoginError> {
     let file_path = default_app_folder::get()?.join(CREDENTIALS_FILE_NAME);
     let credentials = if params.refresh {
         None
@@ -55,7 +55,7 @@ pub async fn run_with_file(
             satori_console::get_user_info(&params.domain, CLIENT_ID, &jwt, params.invalid_cert)
                 .await?;
         let database_credentials =
-            get_database_credentials(&params.domain, &user_info.id, &jwt, params.invalid_cert)
+            get_database_credentials(&user_info.id, &params.domain, &jwt, params.invalid_cert)
                 .await?;
         if params.write_to_file {
             write_to_file(&database_credentials)?;
@@ -73,6 +73,8 @@ pub async fn run_with_file(
             }
         }
     };
+    #[allow(clippy::struct_excessive_bools)]
+    #[allow(clippy::single_match_else)]
     let datastores = match datastores {
         Some(datastores) => datastores,
         None => {
@@ -81,25 +83,24 @@ pub async fn run_with_file(
                 None => {
                     get_jwt(
                         params.port,
-                        params.domain.to_owned(),
+                        params.domain.clone(),
                         params.open_browser,
                         params.invalid_cert,
                     )
                     .await?
                 }
             };
-            let account_id = match account_id {
-                Some(account_id) => account_id,
-                None => {
-                    let user_info = satori_console::get_user_info(
-                        &params.domain,
-                        CLIENT_ID,
-                        &jwt,
-                        params.invalid_cert,
-                    )
-                    .await?;
-                    user_info.account_id
-                }
+            let account_id = if let Some(account_id) = account_id {
+                account_id
+            } else {
+                let user_info = satori_console::get_user_info(
+                    &params.domain,
+                    CLIENT_ID,
+                    &jwt,
+                    params.invalid_cert,
+                )
+                .await?;
+                user_info.account_id
             };
             let ds_info = datastores::get_from_console(
                 &jwt,
@@ -158,11 +159,11 @@ fn refresh_datastores(params: &Login, user_info: &satori_console::UserProfile) -
     }
     match datastores::file::load() {
         Ok(ds_info) => {
-            if ds_info.account_id != user_info.account_id {
+            if ds_info.account_id == user_info.account_id {
+                false
+            } else {
                 log::debug!("Account id changed, refreshing datastores");
                 true
-            } else {
-                false
             }
         }
         Err(err) => {
@@ -177,10 +178,11 @@ async fn get_database_credentials(
     domain: &str,
     jwt: &str,
     invalid_cert: bool,
-) -> Result<DatabaseCredentials, errors::LoginError> {
+) -> Result<Credentials, errors::LoginError> {
     Ok(
         satori_console::get_database_credentials(domain, CLIENT_ID, jwt, user_id, invalid_cert)
-            .await?,
+            .await?
+            .into(),
     )
 }
 
@@ -190,7 +192,7 @@ async fn get_jwt(
     open_browser: bool,
     invalid_cert: bool,
 ) -> Result<String, errors::LoginError> {
-    let addr = web_server::start(port, domain.clone(), invalid_cert).await?;
+    let addr = web_server::start(port, domain.clone(), invalid_cert)?;
 
     let (code_challenge, code_verifier) = generate_code_challenge_pair();
 
@@ -258,7 +260,7 @@ fn with_browser(
     wait_till_jwt()
 }
 
-fn write_to_file(database_credentials: &DatabaseCredentials) -> Result<(), errors::LoginError> {
+fn write_to_file(database_credentials: &Credentials) -> Result<(), errors::LoginError> {
     let file_path = default_app_folder::get()?.join(CREDENTIALS_FILE_NAME);
     // Create directories for the file
     create_directories_for_file(&file_path)
@@ -284,6 +286,7 @@ fn generate_code_challenge_pair() -> (CodeChallenge, CodeVerifier) {
     (code_challenge, code_verifier)
 }
 
+#[allow(clippy::range_plus_one)]
 fn build_state() -> String {
     let mut rng = rand::thread_rng();
     (0..12)
@@ -315,10 +318,7 @@ fn build_oauth_uri(
     })
 }
 
-pub fn credentials_as_string(
-    credentials: &DatabaseCredentials,
-    format: &CredentialsFormat,
-) -> String {
+pub fn credentials_as_string(credentials: &Credentials, format: &CredentialsFormat) -> String {
     match format {
         CredentialsFormat::Csv => format!(
             "{},{},{}",
@@ -336,11 +336,11 @@ fn create_directories_for_file(file_path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-fn read_credentials_from_file(file_path: &PathBuf) -> Option<DatabaseCredentials> {
+fn read_credentials_from_file(file_path: &PathBuf) -> Option<Credentials> {
     match fs::read_to_string(file_path) {
         Ok(cred_string) => {
             log::debug!("Successfully read file: {:?}", file_path);
-            serde_json::from_str::<DatabaseCredentials>(&cred_string)
+            serde_json::from_str::<Credentials>(&cred_string)
                 .map_err(|err| {
                     log::warn!("Failed to parse credentials: {}, generating new.", err);
                 })

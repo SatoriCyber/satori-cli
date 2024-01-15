@@ -13,7 +13,7 @@ async fn main() {
     let flow = match cli::run() {
         Ok(flow) => flow,
         Err(err) => {
-            eprintln!("{}", err);
+            eprintln!("{err}");
             std::process::exit(1);
         }
     };
