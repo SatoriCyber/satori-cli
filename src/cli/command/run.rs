@@ -53,7 +53,7 @@ fn from_file() -> Vec<(&'static str, Vec<CliArgs>)> {
         .iter()
         .map(|tool| {
             (
-                string_to_static_str(tool.name.to_owned()),
+                string_to_static_str(tool.name.clone()),
                 tool.cli_args.clone(),
             )
         })

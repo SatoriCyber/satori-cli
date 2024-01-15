@@ -31,7 +31,7 @@ impl Tool {
     pub fn get_env(&self) -> Vec<(String, String)> {
         self.env
             .iter()
-            .map(|env| (env.name.to_owned(), env.value.to_owned()))
+            .map(|env| (env.name.clone(), env.value.clone()))
             .collect::<Vec<(String, String)>>()
     }
 }

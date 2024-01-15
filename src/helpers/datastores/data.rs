@@ -15,14 +15,14 @@ pub struct DatastoresInfo {
 impl DatastoresInfo {
     pub fn new_from_console_response(
         account_id: String,
-        value: HashSet<DatastoreAccessDetails>,
+        value: &HashSet<DatastoreAccessDetails>,
     ) -> Self {
         let datastores = value
             .iter()
             .map(|datastore| {
                 (
-                    datastore.name.to_owned(),
-                    DatastoreInfo::from(datastore.to_owned()),
+                    datastore.name.clone(),
+                    DatastoreInfo::from(datastore.clone()),
                 )
             })
             .collect();

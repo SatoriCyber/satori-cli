@@ -3,10 +3,9 @@ use minijinja::{context, Value};
 use crate::{
     helpers::{
         datastores::DatastoreInfo,
-        satori_console::DatabaseCredentials,
         tools::{self, Tool},
     },
-    login,
+    login::{self, data::Credentials},
 };
 
 use super::{errors, DynamicTool};
@@ -62,7 +61,7 @@ fn get_args_from_env(
     env: &minijinja::Environment<'_>,
     params: &DynamicTool,
     datastore_info: &DatastoreInfo,
-    credentials: &DatabaseCredentials,
+    credentials: &Credentials,
 ) -> String {
     let tmpl = env.get_template(TOOLS_TEMPLATE_NAME).unwrap();
     let ctx = get_jinja_context(datastore_info, credentials, params);
@@ -71,13 +70,18 @@ fn get_args_from_env(
 
 fn build_args<'a>(args_string: &'a str, params: &'a DynamicTool) -> Vec<&'a str> {
     let mut args = args_string.split_whitespace().collect::<Vec<&str>>();
-    args.extend(params.additional_args.iter().map(|arg| arg.as_str()));
+    args.extend(
+        params
+            .additional_args
+            .iter()
+            .map(std::string::String::as_str),
+    );
     args
 }
 
 fn get_jinja_context(
     datastore_info: &DatastoreInfo,
-    credentials: &DatabaseCredentials,
+    credentials: &Credentials,
     params: &DynamicTool,
 ) -> Value {
     context! {

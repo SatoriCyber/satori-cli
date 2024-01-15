@@ -1,7 +1,7 @@
 use crate::helpers::datastores::errors::DatastoresError;
 
 #[derive(thiserror::Error, Debug)]
-pub enum ToolsErrors {
+pub enum ToolsError {
     #[error("login errors: {0}")]
     LoginError(#[from] crate::login::errors::LoginError),
     #[error("HomeDir error: {0}")]

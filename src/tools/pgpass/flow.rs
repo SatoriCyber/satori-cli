@@ -11,8 +11,8 @@ use std::{
 };
 
 use crate::{
-    helpers::{datastores::DatastoresInfo, satori_console::DatabaseCredentials},
-    login,
+    helpers::datastores::DatastoresInfo,
+    login::{self, data::Credentials},
     tools::errors,
 };
 
@@ -23,10 +23,10 @@ const PGPASS_FILE_NAME: &str = ".pgpass";
 #[cfg(target_family = "windows")]
 const PGPASS_FILE_NAME: &str = "pgpass.conf";
 
-pub async fn run(params: PgPass) -> Result<(), errors::ToolsErrors> {
+pub async fn run(params: PgPass) -> Result<(), errors::ToolsError> {
     let (credentials, datastores_info) = login::run_with_file(&params.login).await?;
 
-    let satori_pgpass = pgpass_from_satori_db(datastores_info.clone(), credentials.clone());
+    let satori_pgpass = pgpass_from_satori_db(&datastores_info, &credentials);
 
     let pgpass_file = get_pgpass_file_path()?;
     if pgpass_file.exists() {
@@ -46,18 +46,18 @@ pub async fn run(params: PgPass) -> Result<(), errors::ToolsErrors> {
         file.seek(SeekFrom::Start(0)).unwrap();
         file.set_len(0).unwrap();
         for entry in non_satori_entries {
-            writeln!(file, "{}", entry).map_err(errors::ToolsErrors::FailedWritingToPgpassFile)?;
+            writeln!(file, "{entry}").map_err(errors::ToolsError::FailedWritingToPgpassFile)?;
         }
         for entry in satori_entries {
-            writeln!(file, "{}", entry).map_err(errors::ToolsErrors::FailedWritingToPgpassFile)?;
+            writeln!(file, "{entry}").map_err(errors::ToolsError::FailedWritingToPgpassFile)?;
         }
         for entry in satori_exiting_entries {
-            writeln!(file, "{}", entry).map_err(errors::ToolsErrors::FailedWritingToPgpassFile)?;
+            writeln!(file, "{entry}").map_err(errors::ToolsError::FailedWritingToPgpassFile)?;
         }
     } else {
         let mut file = create_pgpass_file(pgpass_file)?;
         for entry in satori_pgpass {
-            writeln!(file, "{}", entry).map_err(errors::ToolsErrors::FailedWritingToPgpassFile)?;
+            writeln!(file, "{entry}").map_err(errors::ToolsError::FailedWritingToPgpassFile)?;
         }
     }
 
@@ -65,34 +65,34 @@ pub async fn run(params: PgPass) -> Result<(), errors::ToolsErrors> {
 }
 
 #[cfg(target_family = "unix")]
-fn get_pgpass_file_path() -> Result<PathBuf, errors::ToolsErrors> {
+fn get_pgpass_file_path() -> Result<PathBuf, errors::ToolsError> {
     Ok(homedir::get_my_home()?
-        .ok_or_else(|| errors::ToolsErrors::HomeDirNotFound)?
+        .ok_or_else(|| errors::ToolsError::HomeDirNotFound)?
         .join(Path::new(PGPASS_FILE_NAME)))
 }
 
 #[cfg(target_family = "windows")]
-fn get_pgpass_file_path() -> Result<PathBuf, errors::ToolsErrors> {
+fn get_pgpass_file_path() -> Result<PathBuf, errors::ToolsError> {
     let pgpass_dir = homedir::get_my_home()?
-        .ok_or_else(|| errors::ToolsErrors::HomeDirNotFound)?
+        .ok_or_else(|| errors::ToolsError::HomeDirNotFound)?
         .join(Path::new("AppData/Roaming/postgresql"));
     if !pgpass_dir.exists() {
         std::fs::create_dir(&pgpass_dir).map_err(|err| {
-            errors::ToolsErrors::FailedToCreateDirectories(err, pgpass_dir.clone())
+            errors::ToolsError::FailedToCreateDirectories(err, pgpass_dir.clone())
         })?;
     }
     Ok(pgpass_dir.join(Path::new(PGPASS_FILE_NAME)))
 }
 
-fn get_pgpass_file(pgpass_file: PathBuf) -> Result<File, errors::ToolsErrors> {
+fn get_pgpass_file(pgpass_file: PathBuf) -> Result<File, errors::ToolsError> {
     OpenOptions::new()
         .read(true)
         .write(true)
         .open(pgpass_file)
-        .map_err(errors::ToolsErrors::FailedToOpenPgpassFile)
+        .map_err(errors::ToolsError::FailedToOpenPgpassFile)
 }
 
-fn create_pgpass_file(pgpass_file: PathBuf) -> Result<File, errors::ToolsErrors> {
+fn create_pgpass_file(pgpass_file: PathBuf) -> Result<File, errors::ToolsError> {
     let mut open_options = OpenOptions::new();
     open_options.write(true).create(true);
 
@@ -100,7 +100,7 @@ fn create_pgpass_file(pgpass_file: PathBuf) -> Result<File, errors::ToolsErrors>
 
     open_options
         .open(pgpass_file)
-        .map_err(errors::ToolsErrors::FailedToCreatePgpassFile)
+        .map_err(errors::ToolsError::FailedToCreatePgpassFile)
 }
 
 #[cfg(target_family = "unix")]
@@ -135,12 +135,7 @@ impl Hash for PgPassEntry {
     }
 }
 impl PgPassEntry {
-    fn from_creds(
-        credentials: DatabaseCredentials,
-        port: u16,
-        host: String,
-        database: String,
-    ) -> Self {
+    fn from_creds(credentials: Credentials, port: u16, host: String, database: String) -> Self {
         PgPassEntry {
             host,
             port,
@@ -174,8 +169,8 @@ impl fmt::Display for PgPassEntry {
 }
 
 fn pgpass_from_satori_db(
-    datastores_info: DatastoresInfo,
-    credentials: DatabaseCredentials,
+    datastores_info: &DatastoresInfo,
+    credentials: &Credentials,
 ) -> HashSet<PgPassEntry> {
     datastores_info
         .datastores
@@ -198,12 +193,12 @@ fn pgpass_from_satori_db(
         .collect::<HashSet<PgPassEntry>>()
 }
 
-fn pgpass_from_file(file: &File) -> Result<HashSet<PgPassEntry>, errors::ToolsErrors> {
+fn pgpass_from_file(file: &File) -> Result<HashSet<PgPassEntry>, errors::ToolsError> {
     let buf = BufReader::new(file);
     buf.lines()
         .map(|line| {
-            let line = line.map_err(errors::ToolsErrors::ReadLineError)?;
+            let line = line.map_err(errors::ToolsError::ReadLineError)?;
             Ok(PgPassEntry::from(line))
         })
-        .collect::<Result<HashSet<PgPassEntry>, errors::ToolsErrors>>()
+        .collect::<Result<HashSet<PgPassEntry>, errors::ToolsError>>()
 }

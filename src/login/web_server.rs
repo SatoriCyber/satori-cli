@@ -20,7 +20,7 @@ struct OauthQueryParams {
     code: String,
 }
 
-pub async fn start(
+pub fn start(
     port: u16,
     domain: String,
     invalid_cert: bool,
@@ -28,7 +28,7 @@ pub async fn start(
     let authorize = warp::path::end()
         .and(warp::query::<OauthQueryParams>())
         .and_then(move |params| {
-            let domain = domain.to_owned();
+            let domain = domain.clone();
             async move { oauth_response(params, domain, invalid_cert).await }
         });
 
@@ -42,9 +42,8 @@ async fn oauth_response(
     domain: String,
     invalid_cert: bool,
 ) -> Result<impl warp::Reply, warp::Rejection> {
-    let expected_state = match EXPECTED_STATE.get() {
-        Some(state) => state,
-        None => {
+    let Some(expected_state) = EXPECTED_STATE.get() else {
+        {
             log::error!("Internal error: expected_state is not set");
             return Err(warp::reject::custom(
                 errors::WebServerError::ExpectedStateNotSet,
@@ -57,14 +56,11 @@ async fn oauth_response(
         return Err(warp::reject::custom(errors::WebServerError::StateNotMatch));
     }
 
-    let code_verifier = match CODE_VERIFIER.get() {
-        Some(code_verifier) => code_verifier,
-        None => {
-            log::error!("Internal error: code_verifier is not set");
-            return Err(warp::reject::custom(
-                errors::WebServerError::CodeVerifierNotSet,
-            ));
-        }
+    let Some(code_verifier) = CODE_VERIFIER.get() else {
+        log::error!("Internal error: code_verifier is not set");
+        return Err(warp::reject::custom(
+            errors::WebServerError::CodeVerifierNotSet,
+        ));
     };
 
     let oauth_response = satori_console::generate_token_oauth(
