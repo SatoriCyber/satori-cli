@@ -18,6 +18,8 @@ _databases() {
     local databases=()
     while IFS= read -r line; do
         databases+=("$line")
-    done < <(satori list --databases $datastore_name)
-    _values database $databases
+    done < <(./satori list --databases $datastore_name)
+    if [[ ! -z "$databases" ]]; then
+        _values database $databases
+    fi
 }
