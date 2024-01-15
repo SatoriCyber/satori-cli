@@ -55,7 +55,7 @@ pub async fn run_with_file(
             satori_console::get_user_info(&params.domain, CLIENT_ID, &jwt, params.invalid_cert)
                 .await?;
         let database_credentials =
-            get_database_credentials(&params.domain, &user_info.id, &jwt, params.invalid_cert)
+            get_database_credentials(&user_info.id, &params.domain, &jwt, params.invalid_cert)
                 .await?;
         if params.write_to_file {
             write_to_file(&database_credentials)?;
