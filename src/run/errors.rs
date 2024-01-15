@@ -8,8 +8,10 @@ use crate::{helpers::default_app_folder::DefaultFolderError, login::errors::Logi
 pub enum RunError {
     #[error("Failed to login error: {0}")]
     LoginError(#[from] LoginError),
-    #[error("Failed to run command: {0}")]
-    CommandError(#[from] std::io::Error),
+    #[error("Failed to run command: {1} {0}")]
+    CommandError(std::io::Error, String),
+    #[error("Failed to execute command: {1} {0}")]
+    SpawnError(std::io::Error, String),
     #[error("{0}")]
     HomeFolderError(#[from] DefaultFolderError),
     #[error("Failed to get datastore: {0} from datastores info file")]

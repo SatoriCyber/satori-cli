@@ -13,3 +13,11 @@
 - name: mongosh
   command: mongosh
   command_args: "{{host}} --username {{ user }} --password {{ password }}"
+- name: s3
+  command: aws
+  env:
+    - name: AWS_ACCESS_KEY_ID
+      value: "{{ user }}"
+    - name: AWS_SECRET_ACCESS_KEY
+      value: "{{ password }}"
+  command_args: "s3 --endpoint-url https://{{ host }}"

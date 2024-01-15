@@ -2,7 +2,7 @@ use clap::ArgMatches;
 
 use crate::{
     cli::{
-        parsers::{common::build_login_common_args, run::common},
+        parsers::{self, common::build_login_common_args, run::common},
         Flow,
     },
     helpers::tools::{self, Tool},
@@ -10,6 +10,7 @@ use crate::{
 };
 
 pub fn build(tool_name: &str, args: &ArgMatches) -> Flow {
+    parsers::common::set_debug(args);
     let login_builder = build_login_common_args(args);
     let login = if args.get_flag("no-persist") {
         login_builder.write_to_file(false)

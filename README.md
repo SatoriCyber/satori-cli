@@ -12,6 +12,7 @@ The Satori CLI enables you to access all of your available datasets from the com
       - [Arguments](#arguments)
       - [psql](#psql)
       - [mongosh](#mongosh)
+      - [s3](#s3)
       - [DBT](#dbt)
         - [Invoking DBT](#invoking-dbt)
     - [PgPass](#pgpass)
@@ -71,7 +72,19 @@ satori run psql <datastore-host> -d <database> -- -c 'select 1'
 Triggers a mongosh session with the given datastore.
 
 ``` bash
-satori connect mongosh <datastore-host>
+satori run mongosh <datastore-host>
+```
+
+#### s3
+Execute s3 command.
+
+``` bash
+satori run s3 <datastore-host> -- <s3 command>
+```
+
+**Example**
+```bash
+  satori run s3 <datastore-host> -- ls
 ```
 
 #### DBT

@@ -39,11 +39,14 @@ pub async fn run(params: DynamicTool) -> Result<(), errors::RunError> {
         })
         .collect::<Vec<(String, String)>>();
 
-    let mut command_results = std::process::Command::new(tool_data.command)
+    let mut command_results = std::process::Command::new(tool_data.command.clone())
         .args(args)
         .envs(envs)
-        .spawn()?;
-    command_results.wait()?;
+        .spawn()
+        .map_err(|err| errors::RunError::CommandError(err, tool_data.command.clone()))?;
+    command_results
+        .wait()
+        .map_err(|err| errors::RunError::SpawnError(err, tool_data.command.clone()))?;
     Ok(())
 }
 /// Get the data of the tool from the tools.yaml file

@@ -79,8 +79,11 @@ pub async fn run(params: Dbt) -> Result<(), errors::RunError> {
     let mut command_results = std::process::Command::new("dbt")
         .args(args)
         .envs(envs)
-        .spawn()?;
-    command_results.wait()?;
+        .spawn()
+        .map_err(|err| errors::RunError::CommandError(err, "dbt".to_string()))?;
+    command_results
+        .wait()
+        .map_err(|err| errors::RunError::SpawnError(err, "dbt".to_string()))?;
     Ok(())
 }
 

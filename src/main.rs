@@ -36,7 +36,7 @@ async fn handle_flow(flow: cli::Flow) -> Result<()> {
             .map_err(|err| anyhow!("Failed to login: {}", err)),
         cli::Flow::Run(params) => run::run(params)
             .await
-            .map_err(|err| anyhow!("Failed to connect: {}", err)),
+            .map_err(|err| anyhow!("Failed to run: {}", err)),
         cli::Flow::AutoComplete(params, out) => {
             cli::auto_complete(params, out);
             Ok(())
