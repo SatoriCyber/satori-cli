@@ -64,7 +64,7 @@ Triggers a psql session with the given datastore and database.
 
 Passing additional args to the tool
 ```bash
-satori run psql <datastore-host> -d <database> -- -c 'select 1'
+satori run psql <datastore-host> <database> -- -c 'select 1'
 ```
 
 
