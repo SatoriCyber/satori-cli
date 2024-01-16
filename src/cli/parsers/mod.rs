@@ -17,7 +17,7 @@ pub fn parse(command: Command) -> Result<Flow, CliError> {
         "run" => run::build(command_args),
         "list" => Ok(list::build(command_args)),
         "auto_complete" => Ok(auto_complete::build(command_args)),
-        "pgpass" => Ok(tools::build(command_name, command_args)),
+        "pgpass" | "aws" => tools::build(command_name, command_args),
         _ => panic!("No subcommand found"),
     }
 }
