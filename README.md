@@ -16,6 +16,7 @@ The Satori CLI enables you to access all of your available datasets from the com
       - [DBT](#dbt)
         - [Invoking DBT](#invoking-dbt)
     - [PgPass](#pgpass)
+    - [AWS](#aws)
       - [Arguments](#arguments-1)
     - [Login](#login)
       - [Arguments:](#arguments-2)
@@ -131,6 +132,18 @@ Generates a pgpass file from all datastore information.
 ```bash
 satori pgpass
 ```
+
+### AWS
+Generates a aws profile.
+```bash
+satori aws
+```
+
+then you can use aws cli with the profile
+```bash
+aws s3 ls --profile SATORI
+```
+
 #### Arguments
   - `--refresh` - obtain new credentials and datastores information from the server, even if they already exist in the cache.
   - `--no-launch-browser` - Do not launch the browser to authenticate, instead print the URL to the terminal. 
