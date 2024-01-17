@@ -134,14 +134,21 @@ satori pgpass
 ```
 
 ### AWS
-Generates a aws profile.
+Generates aws profiles.
+
+Each datastore will have its own profile.
+The list of datastores to profile mapping will be printed at the end.
+
 ```bash
 satori aws
+The following profiles have been generated:
+    athea-prod: profile satori_athena_939918
+    s3-stage: profile satori_s3_438177
 ```
 
 then you can use aws cli with the profile
 ```bash
-aws s3 ls --profile SATORI
+aws s3 ls --profile satori_s3_438177
 ```
 
 #### Arguments

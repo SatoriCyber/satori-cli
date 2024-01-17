@@ -29,7 +29,7 @@ pub async fn run(params: Aws) -> Result<(), errors::ToolsError> {
         let datastore_type = format!("{:?}", &datastore_info.r#type);
         let suffix = get_hash_for_datastore(datastore_info, 6);
         let profile_name = format!(
-            "profile {PROFILE_NAME_PREFIX}_{}_{suffix}",
+            "{PROFILE_NAME_PREFIX}_{}_{suffix}",
             datastore_type.to_ascii_lowercase()
         );
         let endpoint_url = &datastore_info.satori_host;
