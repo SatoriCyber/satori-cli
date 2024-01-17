@@ -46,7 +46,7 @@ To enable auto-complete, run the [login](#login) command.
 - [MongoDB](https://www.mongodb.com/)
 - [PostgreSQL](https://www.postgresql.org/)
 - [S3](https://aws.amazon.com/s3/)
-- [Athena](https://aws.amazon.com/athena/)
+- [Redshift](https://aws.amazon.com/redshift/)
 - [CockroachDB](https://www.cockroachlabs.com/)
 - [Greenplum](https://greenplum.org/)
 - 
