@@ -20,8 +20,6 @@ pub enum ToolsError {
     ReadLineError(std::io::Error),
     #[error("Failed to write to file {1}: {0}")]
     FailedToWriteToFile(std::io::Error, std::path::PathBuf),
-    #[error("Failed to find S3 datastore in datastores info file")]
-    S3DatastoreNotFound,
     #[cfg(target_family = "windows")]
     #[error("Failed to create directory for path {1}: {0}")]
     FailedToCreateDirectories(std::io::Error, std::path::PathBuf),
