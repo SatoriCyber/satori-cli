@@ -6,6 +6,7 @@ The Satori CLI enables you to access all of your available datasets from the com
   - [Overview](#overview)
   - [Installation](#installation)
     - [Mac](#mac)
+  - [Supported datastores](#supported-datastores)
   - [Usage](#usage)
     - [Run](#run)
       - [Supported Tools](#supported-tools)
@@ -39,6 +40,16 @@ Once the login is completed (one time), the auto-complete will work.
 
 **first time use**
 To enable auto-complete, run the [login](#login) command.
+
+## Supported datastores
+- [Athena](https://aws.amazon.com/athena/)
+- [MongoDB](https://www.mongodb.com/)
+- [PostgreSQL](https://www.postgresql.org/)
+- [S3](https://aws.amazon.com/s3/)
+- [Athena](https://aws.amazon.com/athena/)
+- [CockroachDB](https://www.cockroachlabs.com/)
+- [Greenplum](https://greenplum.org/)
+- 
 
 ## Usage
 ### Run
