@@ -103,6 +103,11 @@ impl DatastoreType {
             || self == &DatastoreType::Redshift
             || self == &DatastoreType::Greenplum
     }
+
+    pub fn is_aws(&self) -> bool {
+        // Redshift is not supported for now
+        self == &DatastoreType::Athena || self == &DatastoreType::S3
+    }
 }
 
 #[cfg(test)]

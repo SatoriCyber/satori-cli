@@ -1,6 +1,6 @@
-use std::collections::{HashMap, HashSet};
-
 use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
+use std::hash::Hash;
 
 use crate::helpers::satori_console::{DatastoreAccessDetails, DatastoreType};
 
@@ -39,6 +39,12 @@ pub struct DatastoreInfo {
     pub databases: Vec<String>,
     pub port: Option<u16>,
     pub r#type: DatastoreType,
+}
+
+impl Hash for DatastoreInfo {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.satori_host.hash(state);
+    }
 }
 
 impl From<DatastoreAccessDetails> for DatastoreInfo {
