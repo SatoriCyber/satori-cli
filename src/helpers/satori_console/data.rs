@@ -108,6 +108,16 @@ impl DatastoreType {
         // Redshift is not supported for now
         self == &DatastoreType::Athena || self == &DatastoreType::S3
     }
+
+    pub fn is_datastore_supported(&self) -> bool {
+        self == &DatastoreType::Postgresql
+            || self == &DatastoreType::Athena
+            || self == &DatastoreType::CockroachDb
+            || self == &DatastoreType::Greenplum
+            || self == &DatastoreType::S3
+            || self == &DatastoreType::Redshift
+            || self == &DatastoreType::Mongo
+    }
 }
 
 #[cfg(test)]
