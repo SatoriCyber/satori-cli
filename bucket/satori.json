@@ -1,0 +1,19 @@
+{
+    "version": "0.0.11",
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/SatoriCyber/satori-cli/releases/download/v0.0.11/satori-0.0.11-windows.zip",
+        "hash": "efd88fd9fc6de66ce03166ee115fc00403eefa0900a492f258e9beea88d93171"
+      }
+    },
+    "bin": ["satori.exe"],
+    "checksum": "ed7c802ad8c342d44dd83eff12ef28480071c2987dab6197c53cb36f834ca660",
+    "homepage": "https://www.github.com/SatoriCyber/satori-cli",
+    "license": "Apache-2.0",
+    "description": "Interacts with Satori data portal",
+    "maintainer": {
+      "name": "SatoriCyber",
+      "email": "devops@satoricyber.com"
+    }
+  }
+  

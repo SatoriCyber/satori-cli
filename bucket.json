@@ -1,0 +1,11 @@
+{
+    "name": "SatoriCyberCli",
+    "description": "A bucket which stores the satori cli tool",
+    "homepage": "https://github.com/SatoriCyber/satori-cli",
+    "license": "Apache-2.0",
+    "maintainer": {
+      "name": "SatoriCyber",
+      "email": "devops@satoricyver.com"
+    }
+  }
+  
