@@ -1,0 +1,21 @@
+{
+    "version": "0.0.11",
+    "autoupdate": {
+      "note": "Thanks for using autoupdate, please test your updates!",
+      "architecture": {
+          "64bit": {
+              "url": "https://github.com/SatoriCyber/satori-cli/releases/download/v$version/satori-$version-windows.zip"
+          }
+      }
+  },
+    "bin": ["satori.exe"],
+    "homepage": "https://www.github.com/SatoriCyber/satori-cli",
+    "checkver": "github",
+    "license": "Apache-2.0",
+    "description": "Interacts with Satori data portal",
+    "maintainer": {
+      "name": "SatoriCyber",
+      "email": "devops@satoricyber.com"
+    }
+  }
+  
