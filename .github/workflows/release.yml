@@ -149,11 +149,6 @@ jobs:
           run: |
             chmod a+x satori
             ./satori auto_complete --generate zsh --out satori_auto_complete.zsh
-            
-            sed -e 's|:datastore_name -- The name as defined in Satori data portal:|:datastore_name -- The name as defined in Satori data portal:_datastores|g' -e 's|:database -- Database name:|:database -- Database name:_databases|g' satori_auto_complete.zsh > satori_auto_complete_new.zsh
-            mv satori_auto_complete_new.zsh satori_auto_complete.zsh
-
-            cat auto_complete_functions/script.zsh >> satori_auto_complete.zsh
         - name: Create release
           run: |
               zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-macOS.zip satori satori_auto_complete.zsh
