@@ -1,5 +1,6 @@
 {
-    "autoupdate": {
+  "version": "$version",  
+  "autoupdate": {
       "note": "Thanks for using autoupdate, please test your updates!",
       "architecture": {
           "64bit": {
