@@ -1,5 +1,5 @@
 {
-  "version": "$version",  
+  "version": "0.0.12",  
   "autoupdate": {
       "note": "Thanks for using autoupdate, please test your updates!",
       "architecture": {
