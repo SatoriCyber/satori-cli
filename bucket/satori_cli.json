@@ -5,6 +5,9 @@
       "architecture": {
           "64bit": {
               "url": "https://github.com/SatoriCyber/satori-cli/releases/download/v$version/satori-$version-windows.zip"
+          },
+          "32bit": {
+              "url": "https://github.com/SatoriCyber/satori-cli/releases/download/v$version/satori-$version-windows.zip"
           }
       }
   },
