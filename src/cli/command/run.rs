@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::{arg, value_parser, Arg, ArgAction, Command};
 
-use crate::helpers::{self, tools::CliArgs};
+use crate::{cli::auto_complete, helpers::{self, tools::CliArgs}};
 
 use super::common_args;
 
@@ -52,6 +52,12 @@ fn from_file() -> Vec<(&'static str, Vec<CliArgs>)> {
         .value
         .iter()
         .map(|tool| {
+            auto_complete::add_tool_autocomplete(tool.name.clone());
+            for cli_arg in tool.cli_args.iter() {
+                if cli_arg.name == "database" {
+                    auto_complete::add_database_tool_autocomplete(tool.name.clone());
+                }
+            }
             (
                 string_to_static_str(tool.name.clone()),
                 tool.cli_args.clone(),
