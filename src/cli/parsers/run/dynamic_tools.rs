@@ -2,7 +2,8 @@ use clap::ArgMatches;
 
 use crate::{
     cli::{
-        parsers::{self, common::build_login_common_args, run::common}, Flow
+        parsers::{self, common::build_login_common_args, run::common},
+        Flow,
     },
     helpers::tools::{self, Tool},
     run::{DynamicTool, Run},
