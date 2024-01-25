@@ -64,12 +64,18 @@ jobs:
       - name: Build
         run: cargo build --release --bin satori
         env:
-            CARGO_TERM_COLOR: always        
+            CARGO_TERM_COLOR: always
+      - name: move binary
+        run: |
+            mv target/release/satori.exe satori.exe     
+      - name: Generate auto complete
+        run: |
+            ./satori.exe auto_complete --generate powershell --out satori_auto_complete.ps1
       - id: get_version
         uses: battila7/get-version-action@v2
       - name: Create release
         run: |
-            Compress-Archive -Path "target\release\satori.exe" -DestinationPath "satori-${{ steps.get_version.outputs.version-without-v }}-windows.zip"
+            Compress-Archive -Path "satori.exe", "satori_auto_complete.ps1" -DestinationPath "satori-${{ steps.get_version.outputs.version-without-v }}-windows.zip"
       - name: Upload artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
