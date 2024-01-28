@@ -16,7 +16,7 @@
   },
     "bin": ["satori.exe"],
     "post_install": [
-      "Write-Host $dir -ForegroundColor Yellow"
+      "Write-Host @' To enable auto-complete, add the following lines to your PowerShell profile:\n$env:Path += $path\nImport-Module $path@' -ForegroundColor Magenta"
     ],
     "homepage": "https://www.github.com/SatoriCyber/satori-cli",
     "checkver": "github",
