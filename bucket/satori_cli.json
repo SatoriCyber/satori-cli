@@ -15,6 +15,9 @@
       }
   },
     "bin": ["satori.exe"],
+    "post_install": [
+      "Write-Host $dir"
+    ],
     "homepage": "https://www.github.com/SatoriCyber/satori-cli",
     "checkver": "github",
     "license": "Apache-2.0",
