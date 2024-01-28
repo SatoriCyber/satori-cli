@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# Define variables
+APP_NAME="satori"
+LATEST_APP_VERSION="0.0.12"
+DOWNLOAD_URL="https://github.com/SatoriCyber/satori-cli/releases/download/v$LATEST_APP_VERSION/$APP_NAME-$LATEST_APP_VERSION-linux.tar.gz"
+
+# Check if the script is run with root privileges
+if [ "$EUID" -eq 0 ]; then
+    echo "Running with root privileges."
+    INSTALL_DIR="/usr/local/bin"
+else
+    echo "Not running with root privileges. Installing in user's home directory."
+    INSTALL_DIR="$HOME/bin"
+fi
+
+# Function to compare versions
+version_compare() {
+    if dpkg --compare-versions "$1" lt "$2"; then
+        return 0  # Version 1 is less than Version 2
+    else
+        return 1  # Version 1 is equal or greater than Version 2
+    fi
+}
+
+# Function to get the currently installed version from satori --version
+get_installed_version() {
+    local installed_version
+    installed_version=$(satori --version | awk '{print $2}')
+    echo "$installed_version"
+}
+
+# Function to display an error and exit
+function die {
+    echo "Error: $1" >&2
+    exit 1
+}
+
+# Create installation directory
+mkdir -p "$INSTALL_DIR" || die "Failed to create installation directory."
+
+# Get the currently installed version
+CURRENT_VERSION=$(get_installed_version)
+
+# Compare versions and replace if older
+if [ -z "$CURRENT_VERSION" ] || version_compare "$CURRENT_VERSION" "$LATEST_APP_VERSION"; then
+    echo "Installing $APP_NAME-$LATEST_APP_VERSION..."
+
+    # Download and extract the Satori CLI
+    curl -L "$DOWNLOAD_URL" | tar -xz -C "$INSTALL_DIR" || die "Failed to download and extract $APP_NAME."
+
+    # Replace the existing binary
+    ln -sf "$INSTALL_DIR/$APP_NAME-$LATEST_APP_VERSION" "$INSTALL_DIR/$APP_NAME" || die "Failed to replace existing binary."
+
+    # Provide user feedback
+    echo "$APP_NAME-$LATEST_APP_VERSION has been installed and replaced successfully in $INSTALL_DIR."
+else
+    echo "The installed version ($CURRENT_VERSION) is equal or newer than the latest version ($LATEST_APP_VERSION). Skipping installation."
+fi
+
+# Add the user-specific bin directory to the user's PATH
+echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$HOME/.bashrc" || die "Failed to update .bashrc."
+
+# Provide user feedback
+echo "You can run it using the command: $APP_NAME"
+echo "Please restart your shell or run 'source ~/.bashrc' to update the PATH."
