@@ -7,6 +7,7 @@ The Satori CLI enables you to access all of your available datasets from the com
   - [Installation](#installation)
     - [Mac](#mac)
     - [Windows](#windows)
+  - [first time use](#first-time-use)
   - [Supported datastores](#supported-datastores)
   - [Usage](#usage)
     - [Run](#run)
@@ -40,24 +41,45 @@ Add the following line to your shell configuration file (e.g., ~/.bashrc or ~/.z
 Once the login is completed (one time), the auto-complete will work.
 
 ### Windows
+**Manual install**
+You can download the latest version from the [releases page](https://github.com/SatoriCyber/satori-cli/releases)
+Download the windows zip file.
+Unzip the files:
+``` powershell
+Expand-Archive <ZIP FILE> -DestinationPath <DESTINATION PATH>
+```
+Move the satori exe to a permanent location (e.g., `C:\Program Files\Satori`)
+Add the exe to your path, in your `$profile` add the following line:
+
+```powershell
+$env:Path += ";C:\Program Files\Satori"
+```
+Add the auto-complete file to your scripts directory (e.g., `~\Documents\WindowsPowerShell\Scripts`)
+
+Add to your profile to enable auto-complete:
+```powershell
+. ~\Documents\WindowsPowerShell\Scripts\satori_auto_complete.ps1
+Import-Module ~\Documents\WindowsPowerShell\Scripts\satori_auto_complete.ps1
+```
+
+
 **SCOOP**
+
 To install using [scoop](https://scoop.sh/), run the following command:
 ```powershell
 scoop bucket add satori  https://www.github.com/satoricyber/satori-cli
 scoop install satori/satori_cli
 ```
 
-**Enable auto0complete**
+**Enable auto-complete**
 Add the following line to you powershell profile (e.g., `~\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1`):
 ```powershell
-$env:Path +=  <SCOOP APP PATH>\satori_cli\current; Import-Module <SCOOP APP PATH>\satori_cli\current
+. <SCOOP-APP-DIR>\satori_cli\current\satori_auto_complete.ps1
+Import-Module <SCOOP-APP-DIR>\satori_cli\current\satori_auto_complete.ps1
 ``````
 
-***Download***
-You can download the latest version from the [releases page](https://github.com/SatoriCyber/satori-cli/releases)
-Download the windows exe file and place it in a folder that is in your PATH.
 
-**first time use**
+## first time use
 To enable auto-complete, run the [login](#login) command.
 
 ## Supported datastores
