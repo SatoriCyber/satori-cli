@@ -47,6 +47,12 @@ scoop bucket add satori  https://www.github.com/satoricyber/satori-cli
 scoop install satori/satori_cli
 ```
 
+**Enable auto0complete**
+Add the following line to you powershell profile (e.g., `~\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1`):
+```powershell
+$env:Path +=  <SCOOP APP PATH>\satori_cli\current; Import-Module <SCOOP APP PATH>\satori_cli\current
+``````
+
 ***Download***
 You can download the latest version from the [releases page](https://github.com/SatoriCyber/satori-cli/releases)
 Download the windows exe file and place it in a folder that is in your PATH.
