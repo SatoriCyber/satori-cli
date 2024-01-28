@@ -16,7 +16,7 @@
   },
     "bin": ["satori.exe"],
     "post_install": [
-      "Write-Host $dir"
+      "Write-Host $dir -ForegroundColor Yellow"
     ],
     "homepage": "https://www.github.com/SatoriCyber/satori-cli",
     "checkver": "github",
