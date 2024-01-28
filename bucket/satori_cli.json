@@ -1,12 +1,15 @@
 {
   "version": "0.0.12",  
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/SatoriCyber/satori-cli/releases/download/v0.0.12/satori-0.0.12-windows.zip",
+      "hash": "5a7f38189b353eb3f4b77e8218ed8a3efd397086f3359f5b43fa38c21a081c6d"
+    }
+  },
   "autoupdate": {
       "note": "Thanks for using autoupdate, please test your updates!",
       "architecture": {
           "64bit": {
-              "url": "https://github.com/SatoriCyber/satori-cli/releases/download/v$version/satori-$version-windows.zip"
-          },
-          "32bit": {
               "url": "https://github.com/SatoriCyber/satori-cli/releases/download/v$version/satori-$version-windows.zip"
           }
       }
