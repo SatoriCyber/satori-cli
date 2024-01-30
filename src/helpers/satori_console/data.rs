@@ -59,6 +59,8 @@ pub struct DatastoreAccessDetails {
     pub satori_hostname: String,
     pub port: Option<u16>,
     pub satori_auth_enabled: bool,
+    #[serde(rename = "dataStoreSettings")]
+    pub datastore_settings: Option<DatastoreSettings>,
     pub dbs: Vec<String>,
 }
 impl Eq for DatastoreAccessDetails {}
@@ -73,6 +75,21 @@ impl Hash for DatastoreAccessDetails {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.id.hash(state);
     }
+}
+
+#[derive(Debug, serde::Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub enum DatastoreSettings {
+    #[serde(rename = "deploymentType")]
+    MongoDeploymentType(MongoDeploymentType),
+}
+
+#[derive(Debug, serde::Deserialize, Clone)]
+pub enum MongoDeploymentType {
+    #[serde(rename = "MONGODB")]
+    MongoDb,
+    #[serde(rename = "MONGODB_SRV")]
+    MongoDbSrv,
 }
 
 #[derive(Debug, serde::Deserialize, Clone, Serialize, PartialEq)]

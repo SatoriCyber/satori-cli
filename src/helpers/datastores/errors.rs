@@ -17,3 +17,9 @@ pub enum DatastoresError {
     #[error("Satori error: {0}")]
     Satori(#[from] satori_console::errors::SatoriError),
 }
+
+#[derive(Debug, Error)]
+pub enum GetHostError {
+    #[error("MongoDB without deployment type")]
+    MongoMissingDeploymentType,
+}

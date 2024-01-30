@@ -184,7 +184,10 @@ fn pgpass_from_satori_db(
                     PgPassEntry::from_creds(
                         credentials.clone(),
                         datastore_info.port.expect("Unexpected missing port"),
-                        datastore_info.satori_host.clone(),
+                        datastore_info
+                            .get_datastore_name()
+                            .expect("Failed to get satori host")
+                            .clone(),
                         database.clone(),
                     )
                 })

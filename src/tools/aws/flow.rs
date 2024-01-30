@@ -32,7 +32,7 @@ pub async fn run(params: Aws) -> Result<(), errors::ToolsError> {
             "{PROFILE_NAME_PREFIX}_{}_{suffix}",
             datastore_type.to_ascii_lowercase()
         );
-        let endpoint_url = &datastore_info.satori_host;
+        let endpoint_url = &datastore_info.get_datastore_name()?;
 
         config_content
             .with_section(Some(format!("profile {profile_name}")))

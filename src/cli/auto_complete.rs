@@ -59,7 +59,7 @@ pub fn auto_complete(shell: Shell, out: PathBuf) {
         Err(err) => {
             log::error!("Failed to generate auto-complete script: {}", err);
             return;
-        },
+        }
     };
     let mut output_file = File::create(out).unwrap();
     output_file
@@ -75,7 +75,6 @@ pub(super) fn generate_autocomplete_text(shell: Shell) -> Result<String, String>
     generate_autocomplete_buf(shell, &mut cmd, &mut cursor);
     let auto_complete_script = String::from_utf8(buffer).unwrap();
     make_dynamic_completion_script(shell, &auto_complete_script)
-
 }
 
 fn generate_autocomplete_buf<G: Generator>(
@@ -86,17 +85,17 @@ fn generate_autocomplete_buf<G: Generator>(
     generate(gen, cmd, cmd.get_name().to_string(), buf);
 }
 
-fn make_dynamic_completion_script(shell: Shell, auto_complete_script: &str) -> Result<String, String> {
+fn make_dynamic_completion_script(
+    shell: Shell,
+    auto_complete_script: &str,
+) -> Result<String, String> {
     match shell {
         Shell::Bash => Ok(handle_bash(auto_complete_script.to_string())),
         Shell::PowerShell => Ok(handle_power_shell(auto_complete_script)),
         Shell::Zsh => Ok(handle_zsh(auto_complete_script)),
-        _ => {
-            Err(format!(
-                "Unsupported shell: {:?}. Supported shells are: Bash, PowerShell, Zsh",
-                shell
-            ))
-        }
+        _ => Err(format!(
+            "Unsupported shell: {shell:?}. Supported shells are: Bash, PowerShell, Zsh",
+        )),
     }
 }
 
@@ -118,28 +117,25 @@ fn handle_bash(mut auto_complete_script: String) -> String {
     auto_complete_script.push_str(BASH_FUNCTIONS);
     for tool in get_tools() {
         let full_command_line = format!("{SATORI_RUN_PREFIX_BASH}{tool})");
-        let (start_index, end_index) = match get_indexes(&auto_complete_script, &full_command_line, "esac") {
-            Ok(val) => val,
-            Err(_) => {
-                // The last tool is not closed with satori__run, so we need to handle it separately
-                get_indexes(&auto_complete_script, &full_command_line, "esac\n}").unwrap()
-            },
-        };
+        let (start_index, end_index) =
+            match get_indexes(&auto_complete_script, &full_command_line, "esac") {
+                Ok(val) => val,
+                Err(_) => {
+                    // The last tool is not closed with satori__run, so we need to handle it separately
+                    get_indexes(&auto_complete_script, &full_command_line, "esac\n}").unwrap()
+                }
+            };
         // The end index should include the esac word
         let end_index = end_index + 4;
         let curr_complete = &auto_complete_script[start_index..end_index].to_string();
         let mut new_s = BASH_DATASTORES.to_string();
         if get_database_tools().contains(&tool) {
             new_s.push_str(BASH_DATABASES);
-            }
-            new_s.push_str(&format!("else\n {curr_complete}\nfi\n"));
-        auto_complete_script.replace_range(
-            start_index..end_index,
-            &new_s
-        );
-
+        }
+        new_s.push_str(&format!("else\n {curr_complete}\nfi\n"));
+        auto_complete_script.replace_range(start_index..end_index, &new_s);
     }
-    
+
     auto_complete_script
 }
 
@@ -222,11 +218,11 @@ fn get_indexes(
     let start_index = string_to_search
         .find(start_text)
         .map(|start_index| start_index + start_text.len())
-        .ok_or_else(|| IndexNotFound::StartIndexNotFound)?;
+        .ok_or(IndexNotFound::StartIndexNotFound)?;
     let end_index = string_to_search[start_index..]
         .find(end_text)
         .map(|end_index| start_index + end_index)
-        .ok_or_else(|| IndexNotFound::EndIndexNotFound)?;
+        .ok_or(IndexNotFound::EndIndexNotFound)?;
 
     Ok((start_index, end_index))
 }
@@ -237,29 +233,38 @@ enum IndexNotFound {
     EndIndexNotFound,
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     /// This test will break each time a change to the cli is made.
     /// It is expected, it just to make sure the auto-complete still work.
     /// Each time you make a change make sure the auto-complete still works.
     const EXPECTED_BASH: &str = include_str!("tests_helpers/auto_complete/expected_bash.sh");
     const EXPECTED_ZSH: &str = include_str!("tests_helpers/auto_complete/expected_zsh.zsh");
-    const EXPECTED_POWER_SHELL: &str = include_str!("tests_helpers/auto_complete/expected_powershell.ps1");
+    const EXPECTED_POWER_SHELL: &str =
+        include_str!("tests_helpers/auto_complete/expected_powershell.ps1");
     #[test]
-    fn test_auto_complete_bash(){
-        assert_eq!(generate_autocomplete_text(Shell::Bash).unwrap(), EXPECTED_BASH);
+    fn test_auto_complete_bash() {
+        assert_eq!(
+            generate_autocomplete_text(Shell::Bash).unwrap(),
+            EXPECTED_BASH
+        );
     }
 
     #[test]
-    fn test_auto_complete_zsh(){
-        assert_eq!(generate_autocomplete_text(Shell::Zsh).unwrap(), EXPECTED_ZSH);
+    fn test_auto_complete_zsh() {
+        assert_eq!(
+            generate_autocomplete_text(Shell::Zsh).unwrap(),
+            EXPECTED_ZSH
+        );
     }
 
     #[test]
-    fn test_auto_complete_powershell(){
-        assert_eq!(generate_autocomplete_text(Shell::PowerShell).unwrap(), EXPECTED_POWER_SHELL);
-    }    
+    fn test_auto_complete_powershell() {
+        assert_eq!(
+            generate_autocomplete_text(Shell::PowerShell).unwrap(),
+            EXPECTED_POWER_SHELL
+        );
+    }
 }
