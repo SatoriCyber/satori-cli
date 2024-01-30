@@ -47,6 +47,10 @@ echo "$APP_NAME-$LATEST_APP_VERSION has been installed and replaced successfully
 # Add the user-specific bin directory to the user's PATH
 echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$HOME/.bashrc" || die "Failed to update .bashrc."
 
+# Add auto-complete to bashrc
+echo "[ -f $INSTALL_DIR/satori_auto_complete.sh ] && source $INSTALL_DIR/satori_auto_complete.sh" >> "$HOME/.bashrc" || die "Failed to add auto-complete to .bashrc."
+
+
 # Provide user feedback
 echo "You can run it using the command: $APP_NAME"
 echo "Please restart your shell or run 'source ~/.bashrc' to update the PATH."
