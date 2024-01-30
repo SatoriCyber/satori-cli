@@ -37,7 +37,7 @@ jobs:
       run: |
         mv target/release/satori satori
     - name: Generate auto complete
-      run: satori auto_complete --generate bash --out satori_auto_complete.sh
+      run: ./satori auto_complete --generate bash --out satori_auto_complete.sh
     - id: get_version
       uses: battila7/get-version-action@v2
     - name: Create release
