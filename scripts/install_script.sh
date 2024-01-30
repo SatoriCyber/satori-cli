@@ -2,7 +2,7 @@
 
 # Define variables
 APP_NAME="satori"
-LATEST_APP_VERSION="0.0.13"
+LATEST_APP_VERSION="0.0.14"
 DOWNLOAD_URL="https://github.com/SatoriCyber/satori-cli/releases/download/v$LATEST_APP_VERSION/$APP_NAME-$LATEST_APP_VERSION-linux.tar.gz"
 
 # Check if the script is run with root privileges
