@@ -1,5 +1,3 @@
-
-
 _datastores() {
     local datastore_names=()
 
