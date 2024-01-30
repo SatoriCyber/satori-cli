@@ -14,15 +14,6 @@ else
     INSTALL_DIR="$HOME/bin"
 fi
 
-# Function to compare versions
-version_compare() {
-    if dpkg --compare-versions "$1" lt "$2"; then
-        return 0  # Version 1 is less than Version 2
-    else
-        return 1  # Version 1 is equal or greater than Version 2
-    fi
-}
-
 # Function to get the currently installed version from satori --version
 get_installed_version() {
     local installed_version
@@ -42,21 +33,16 @@ mkdir -p "$INSTALL_DIR" || die "Failed to create installation directory."
 # Get the currently installed version
 CURRENT_VERSION=$(get_installed_version)
 
-# Compare versions and replace if older
-if [ -z "$CURRENT_VERSION" ] || version_compare "$CURRENT_VERSION" "$LATEST_APP_VERSION"; then
-    echo "Installing $APP_NAME-$LATEST_APP_VERSION..."
+echo "Installing $APP_NAME-$LATEST_APP_VERSION..."
 
-    # Download and extract the Satori CLI
-    curl -L "$DOWNLOAD_URL" | tar -xz -C "$INSTALL_DIR" || die "Failed to download and extract $APP_NAME."
+# Download and extract the Satori CLI
+curl -L "$DOWNLOAD_URL" | tar -xz -C "$INSTALL_DIR" || die "Failed to download and extract $APP_NAME."
 
-    # Replace the existing binary
-    ln -sf "$INSTALL_DIR/$APP_NAME-$LATEST_APP_VERSION" "$INSTALL_DIR/$APP_NAME" || die "Failed to replace existing binary."
+# Replace the existing binary
+ln -sf "$INSTALL_DIR/$APP_NAME-$LATEST_APP_VERSION" "$INSTALL_DIR/$APP_NAME" || die "Failed to replace existing binary."
 
-    # Provide user feedback
-    echo "$APP_NAME-$LATEST_APP_VERSION has been installed and replaced successfully in $INSTALL_DIR."
-else
-    echo "The installed version ($CURRENT_VERSION) is equal or newer than the latest version ($LATEST_APP_VERSION). Skipping installation."
-fi
+# Provide user feedback
+echo "$APP_NAME-$LATEST_APP_VERSION has been installed and replaced successfully in $INSTALL_DIR."
 
 # Add the user-specific bin directory to the user's PATH
 echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$HOME/.bashrc" || die "Failed to update .bashrc."
