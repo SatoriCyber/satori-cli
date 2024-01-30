@@ -33,14 +33,17 @@ jobs:
     #     echo "$GPG_PRIVATE_KEY" | gpg --batch --pinentry-mode loopback --passphrase-fd 0 --detach-sign --armor -u devops@satoricyber.com --output gpg.sig target/release/satori    
     #   env:
     #     GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+    - name: Move binary
+      run: |
+        mv target/release/satori satori
     - name: Generate auto complete
       run: ./target/release/satori auto_complete --generate bash --out satori_auto_complete.sh
     - id: get_version
       uses: battila7/get-version-action@v2
     - name: Create release
       run: |
-        zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-linux.zip target/release/satori satori_auto_complete.sh
-        tar czf satori-${{ steps.get_version.outputs.version-without-v }}-linux.tar.gz --directory=target/release satori satori_auto_complete.sh
+        zip -jr satori-${{ steps.get_version.outputs.version-without-v }}-linux.zip satori satori_auto_complete.sh
+        tar czf satori-${{ steps.get_version.outputs.version-without-v }}-linux.tar.gz satori satori_auto_complete.sh
     - name: Upload artifacts
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
