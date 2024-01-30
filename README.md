@@ -7,6 +7,7 @@ The Satori CLI enables you to access all of your available datasets from the com
   - [Installation](#installation)
     - [Mac](#mac)
     - [Windows](#windows)
+    - [Linux](#linux)
   - [first time use](#first-time-use)
   - [Supported datastores](#supported-datastores)
   - [Usage](#usage)
@@ -28,17 +29,11 @@ The Satori CLI enables you to access all of your available datasets from the com
 
 ## Installation
 ### Mac
-```bash
+```zsh
 brew tap satoricyber/satori
 brew install satori_cli
+source "$(brew --prefix)/etc/bash_completion.d/satori_auto_complete.zsh"
 ```
-
-**Enable auto-completion**
-Add the following line to your shell configuration file (e.g., ~/.bashrc or ~/.zshrc):
-```bash 
-  source "$(brew --prefix)/etc/bash_completion.d/satori_auto_complete.zsh"
-```
-Once the login is completed (one time), the auto-complete will work.
 
 ### Windows
 **Manual install**
@@ -76,7 +71,13 @@ Add the following line to you powershell profile (e.g., `~\Documents\WindowsPowe
 ```powershell
 . <SCOOP-APP-DIR>\satori_cli\current\satori_auto_complete.ps1
 Import-Module <SCOOP-APP-DIR>\satori_cli\current\satori_auto_complete.ps1
-``````
+```
+
+### Linux
+Use the install script:
+```bash
+curl -s https://raw.githubusercontent.com/SatoriCyber/satori-cli/main/scripts/install_script.sh | bash
+```
 
 
 ## first time use
@@ -90,7 +91,7 @@ To enable auto-complete, run the [login](#login) command.
 - [Redshift](https://aws.amazon.com/redshift/)
 - [CockroachDB](https://www.cockroachlabs.com/)
 - [Greenplum](https://greenplum.org/)
-- 
+
 
 ## Usage
 ### Run
