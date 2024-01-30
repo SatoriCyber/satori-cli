@@ -2,7 +2,10 @@ use std::path::PathBuf;
 
 use thiserror::Error;
 
-use crate::{helpers::default_app_folder::DefaultFolderError, login::errors::LoginError};
+use crate::{
+    helpers::{datastores::errors::GetHostError, default_app_folder::DefaultFolderError},
+    login::errors::LoginError,
+};
 
 #[derive(Debug, Error)]
 pub enum RunError {
@@ -28,4 +31,6 @@ pub enum RunError {
     DbtTargetNotFound(String),
     #[error("Failed to backup dbt profiles file {0}: {1}")]
     DbtProfilesBackupError(PathBuf, std::io::Error),
+    #[error("{0}")]
+    GetHostError(#[from] GetHostError),
 }

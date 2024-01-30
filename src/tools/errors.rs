@@ -1,4 +1,4 @@
-use crate::helpers::datastores::errors::DatastoresError;
+use crate::helpers::datastores::errors::{DatastoresError, GetHostError};
 
 #[derive(thiserror::Error, Debug)]
 pub enum ToolsError {
@@ -20,6 +20,8 @@ pub enum ToolsError {
     ReadLineError(std::io::Error),
     #[error("Failed to write to file {1}: {0}")]
     FailedToWriteToFile(std::io::Error, std::path::PathBuf),
+    #[error("{0}")]
+    GetHostError(#[from] GetHostError),
     #[cfg(target_family = "windows")]
     #[error("Failed to create directory for path {1}: {0}")]
     FailedToCreateDirectories(std::io::Error, std::path::PathBuf),

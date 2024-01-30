@@ -23,18 +23,18 @@ pub async fn run(params: DynamicTool) -> Result<(), errors::RunError> {
     let mut env = minijinja::Environment::new();
     env.add_template(TOOLS_TEMPLATE_NAME, &tool_data.command_args)
         .unwrap();
-    let args_string = get_args_from_env(&env, &params, datastore_info, &credentials);
+    let args_string = get_args_from_env(&env, &params, datastore_info, &credentials)?;
 
     let args = build_args(&args_string, &params);
 
+    let ctx = get_jinja_context(datastore_info, &credentials, &params)?;
     let envs = tool_data
         .get_env()
         .iter()
         .map(|(name, value)| {
             env.add_template(name, value).unwrap();
             let tmpl = env.get_template(name).unwrap();
-            let ctx = get_jinja_context(datastore_info, &credentials, &params);
-            let env_string = tmpl.render(ctx).unwrap();
+            let env_string = tmpl.render(ctx.clone()).unwrap();
             (name.clone(), env_string)
         })
         .collect::<Vec<(String, String)>>();
@@ -65,10 +65,10 @@ fn get_args_from_env(
     params: &DynamicTool,
     datastore_info: &DatastoreInfo,
     credentials: &Credentials,
-) -> String {
+) -> Result<String, errors::RunError> {
     let tmpl = env.get_template(TOOLS_TEMPLATE_NAME).unwrap();
-    let ctx = get_jinja_context(datastore_info, credentials, params);
-    tmpl.render(ctx).expect("Failed to render tools template")
+    let ctx = get_jinja_context(datastore_info, credentials, params)?;
+    Ok(tmpl.render(ctx).expect("Failed to render tools template"))
 }
 
 fn build_args<'a>(args_string: &'a str, params: &'a DynamicTool) -> Vec<&'a str> {
@@ -86,12 +86,12 @@ fn get_jinja_context(
     datastore_info: &DatastoreInfo,
     credentials: &Credentials,
     params: &DynamicTool,
-) -> Value {
-    context! {
-        host => datastore_info.satori_host,
+) -> Result<Value, errors::RunError> {
+    Ok(context! {
+        host => datastore_info.get_datastore_name()?,
         user => credentials.username,
         password => credentials.password,
         database => params.database,
         port => datastore_info.port
-    }
+    })
 }
