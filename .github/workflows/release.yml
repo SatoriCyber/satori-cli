@@ -77,6 +77,12 @@ jobs:
       - name: Create release
         run: |
             Compress-Archive -Path "satori.exe", "satori_auto_complete.ps1" -DestinationPath "satori-${{ steps.get_version.outputs.version-without-v }}-windows.zip"
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+            if-no-files-found: error
+            name: satori.exe
+            path: satori.exe
       - name: Upload artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -133,6 +139,27 @@ jobs:
             if-no-files-found: error
             name: satori_x86_64
             path: satori_x86_64
+  publish-windows:
+    needs: [build-windows]
+    runs-on: ubuntu-latest
+    steps:
+        - name: download artifacts
+          uses: actions/download-artifact@v4
+          with:
+            merge-multiple: true
+            pattern: satori.exe
+        - id: get_version
+          uses: battila7/get-version-action@v2             
+        - name: Create release
+          run: |
+              tar czf satori-${{ steps.get_version.outputs.version-without-v }}-windows.tar.gz satori.exe
+        - name: Upload artifacts
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          uses: softprops/action-gh-release@v1
+          with:
+            files: |
+              ./**/*.tar.gz
   publish-mac:
       needs: [build-macOS-intel, build-macOS-ARM]
       runs-on: macos-latest
