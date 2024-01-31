@@ -5,9 +5,8 @@ The Satori CLI enables you to access all of your available datasets from the com
 - [Satori-CLI](#satori-cli)
   - [Overview](#overview)
   - [Installation](#installation)
-    - [Mac](#mac)
     - [Windows](#windows)
-    - [Linux](#linux)
+    - [Mac and Linux](#mac-and-linux)
   - [first time use](#first-time-use)
   - [Supported datastores](#supported-datastores)
   - [Usage](#usage)
@@ -29,12 +28,6 @@ The Satori CLI enables you to access all of your available datasets from the com
 
 
 ## Installation
-### Mac
-```zsh
-brew tap satoricyber/satori
-brew install satori_cli
-source "$(brew --prefix)/etc/bash_completion.d/satori_auto_complete.zsh"
-```
 
 ### Windows
 **Manual install**
@@ -74,12 +67,21 @@ Add the following line to you powershell profile (e.g., `~\Documents\WindowsPowe
 Import-Module <SCOOP-APP-DIR>\satori_cli\current\satori_auto_complete.ps1
 ```
 
-### Linux
-Use the install script:
+###  Mac and Linux
+**Install script**
 ```bash
 curl -s https://raw.githubusercontent.com/SatoriCyber/satori-cli/main/scripts/install_script.sh | bash
 ```
 
+**Homebrew**
+
+Mac only
+
+```zsh
+brew tap satoricyber/satori
+brew install satori_cli
+source "$(brew --prefix)/etc/bash_completion.d/satori_auto_complete.zsh"
+```
 
 ## first time use
 To enable auto-complete, run the [login](#login) command.
