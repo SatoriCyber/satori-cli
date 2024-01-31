@@ -4,6 +4,10 @@ version = "0.0.14"
 edition = "2021"
 authors = ["Satori <devops@satoricyber.com>"]
 description = "Allow Satori users to obation database crendtials without the need to login to the Satori data portal"
+license = "Apache-2.0"
+homepage = "https://www.github.com/SatoriCyber/satori-cli"
+repository = "https://www.github.com/SatoriCyber/satori-cli"
+documentation = "https://www.github.com/SatoriCyber/satori-cli/blob/main/README.md"
 
 [[bin]]
 name = "satori"

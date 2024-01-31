@@ -43,3 +43,28 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo test
 ```
 
+
+## Release a new version
+If you don't have the `cargo-release` tool, install it:
+```bash
+cargo install cargo-release
+```
+
+Make sure you are on the main branch:
+```bash
+git checkout main
+```
+Verify first that all as expected:
+```bash
+cargo release patch
+```
+If everything is ok, release a new version:
+```bash
+cargo release patch --execute
+```
+
+Go to [Github Releases](https://www.github.com/SatoriCyber/satori-cli/releases) and add a new release.
+In the tags field chose te tag which was pushed by the release command.
+In the release title write the version number.
+Click on generate release notes and edit them.
+Click on publish release.
