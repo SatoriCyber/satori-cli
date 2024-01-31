@@ -20,6 +20,7 @@ The Satori CLI enables you to access all of your available datasets from the com
       - [DBT](#dbt)
         - [Invoking DBT](#invoking-dbt)
     - [PgPass](#pgpass)
+    - [DataGrip](#datagrip)
     - [AWS](#aws)
       - [Arguments](#arguments-1)
     - [Login](#login)
@@ -185,6 +186,19 @@ Generates a pgpass file from all datastore information.
 ```bash
 satori pgpass
 ```
+
+### DataGrip
+DataGrip can call the Satori CLI before opening a connection to a database to retrieve credentials and make them available to DataGrip automatically.
+
+To automate the process of obtaining credentials when using DataGrip follow these steps:
+
+1. Select the `Options` tab of the database connection properties.
+2. In the `Before connection`` section, select the `+`` button and choose Run `external tool`.
+3. Select the `+` button to add a new external tool.
+4. In the `Name` field enter `Satori CLI`.
+5. In the `Program` field enter `satori`.
+6. In the `Arguments` field enter the arguments for Satori CLI, depending on the type of database connection you are configuring. For example, for PostgreSQL or Redshift use `pgpass`.
+7. Click OK to save your settings
 
 ### AWS
 Generates aws profiles.
