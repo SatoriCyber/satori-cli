@@ -7,7 +7,6 @@
     }
   },
   "autoupdate": {
-      "note": "Thanks for using autoupdate, please test your updates!",
       "architecture": {
           "64bit": {
               "url": "https://github.com/SatoriCyber/satori-cli/releases/download/v$version/satori-$version-windows.zip"

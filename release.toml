@@ -1,0 +1,5 @@
+pre-release-replacements = [
+  {file="bucket/satori_cli.json", search='"version": .*', replace='"version": = "{{version}}",'},
+  {file = "bucket/satori_cli.json", search = '"url": "https://github.com/SatoriCyber/satori-cli/releases/download/v[0-9.]*/satori-[0-9.]*-windows.zip"', replace = '"url": "https://github.com/SatoriCyber/satori-cli/releases/download/v{{version}}/satori-{{version}}-windows.zip"' },
+  {file = "scripts/install_script.sh", search = "LATEST_APP_VERSION=.*", replace = 'LATEST_APP_VERSION="{{version}}"' },
+]
