@@ -1,0 +1,18 @@
+
+name: Release
+
+on:
+    push:
+      branches:
+        - dev
+jobs:
+  create-pre-releaes:
+    runs-on: ubuntu-latest
+    steps:     
+        - name: Create Pre-release
+          run: |
+            cargo install cargo-release
+            cargo release --version-pre=beta
+            git push origin --tags
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
