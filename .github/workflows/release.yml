@@ -148,7 +148,12 @@ jobs:
           uses: actions/download-artifact@v4
           with:
             merge-multiple: true
-            name: satori.exe
+            pattern: satori.exe
+        - name: download artifact powershell auto complete
+          uses: actions/download-artifact@v4
+          with:
+            merge-multiple: true
+            pattern: satori_auto_complete.ps1
         - name: Display artifacts
           run: |
             ls -R
