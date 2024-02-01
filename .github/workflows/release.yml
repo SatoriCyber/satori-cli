@@ -151,6 +151,9 @@ jobs:
             pattern: |
               satori.exe
               satori_auto_complete.ps1
+        - name: Display artifacts
+          run: |
+            ls -R
         - id: get_version
           uses: battila7/get-version-action@v2             
         - name: Create release
