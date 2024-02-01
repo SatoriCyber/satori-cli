@@ -116,7 +116,7 @@ The Satori CLI supports psql, dbt, mongosh
  - `--no-persist` - Does not persist the credentials to the cache.
  - `--no-launch-browser` - Do not launch the browser to authenticate, instead print the URL to the terminal. 
  - `--refresh` - obtain new credentials and datastores information from the server, even if they already exist in the cache.
- -  `<datastore host>` - The datastore host.
+ -  `<datastore name>` - The datastore name.
  - `--` - Pass the rest of the arguments to the tool.
 
 #### psql
@@ -124,12 +124,12 @@ Triggers a psql session with the given datastore and database.
 
 **Example**
 ```bash
-  satori run psql <datastore-host> <database>
+  satori run psql <datastore name> <database>
 ```
 
 Passing additional args to the tool
 ```bash
-satori run psql <datastore-host> <database> -- -c 'select 1'
+satori run psql <datastore name> <database> -- -c 'select 1'
 ```
 
 
@@ -137,19 +137,19 @@ satori run psql <datastore-host> <database> -- -c 'select 1'
 Triggers a mongosh session with the given datastore.
 
 ``` bash
-satori run mongosh <datastore-host>
+satori run mongosh <datastore name>
 ```
 
 #### s3
 Execute s3 command.
 
 ``` bash
-satori run s3 <datastore-host> -- <s3 command>
+satori run s3 <datastore name> -- <s3 command>
 ```
 
 **Example**
 ```bash
-  satori run s3 <datastore-host> -- ls
+  satori run s3 <datastore name> -- ls
 ```
 
 #### DBT
@@ -188,7 +188,7 @@ satori run dbt debug --target dev
 
 **Example**
 ```bash
-  satori run psql <datastore-host> <database>
+  satori run psql <datastore name> <database>
 ```
 
 ### PgPass
