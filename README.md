@@ -5,8 +5,13 @@ The Satori CLI enables you to access all of your available datasets from the com
 - [Satori-CLI](#satori-cli)
   - [Overview](#overview)
   - [Installation](#installation)
-    - [Windows](#windows)
-    - [Mac and Linux](#mac-and-linux)
+    - [Install script (Recommended)](#install-script-recommended)
+    - [Other install methods](#other-install-methods)
+      - [Windows](#windows)
+        - [Manual install](#manual-install)
+        - [SCOOP](#scoop)
+      - [Mac](#mac)
+        - [Homebrew](#homebrew)
   - [first time use](#first-time-use)
   - [Supported datastores](#supported-datastores)
   - [Usage](#usage)
@@ -29,8 +34,17 @@ The Satori CLI enables you to access all of your available datasets from the com
 
 ## Installation
 
-### Windows
-**Manual install**
+###  Install script (Recommended)
+**Install script**
+```bash
+curl -s https://raw.githubusercontent.com/SatoriCyber/satori-cli/main/scripts/install_script.sh | bash
+```
+
+For windows to work [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) must be installed.
+
+### Other install methods
+#### Windows
+##### Manual install
 You can download the latest version from the [releases page](https://github.com/SatoriCyber/satori-cli/releases)
 Download the windows zip file.
 Unzip the files:
@@ -52,7 +66,7 @@ Import-Module ~\Documents\WindowsPowerShell\Scripts\satori_auto_complete.ps1
 ```
 
 
-**SCOOP**
+##### SCOOP
 
 To install using [scoop](https://scoop.sh/), run the following command:
 ```powershell
@@ -67,13 +81,8 @@ Add the following line to you powershell profile (e.g., `~\Documents\WindowsPowe
 Import-Module <SCOOP-APP-DIR>\satori_cli\current\satori_auto_complete.ps1
 ```
 
-###  Mac and Linux
-**Install script**
-```bash
-curl -s https://raw.githubusercontent.com/SatoriCyber/satori-cli/main/scripts/install_script.sh | bash
-```
-
-**Homebrew**
+#### Mac
+##### Homebrew
 
 Mac only
 
