@@ -2,7 +2,7 @@
 
 # Define variables
 APP_NAME="satori"
-LATEST_APP_VERSION="0.0.15"
+LATEST_APP_VERSION="0.0.16"
 DOWNLOAD_URL_PREFIX="https://github.com/SatoriCyber/satori-cli/releases/download/v$LATEST_APP_VERSION/$APP_NAME-$LATEST_APP_VERSION"
 
 HAS_CURL="$(type "curl" &> /dev/null && echo true || echo false)"
