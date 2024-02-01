@@ -35,7 +35,6 @@ The Satori CLI enables you to access all of your available datasets from the com
 ## Installation
 
 ###  Install script (Recommended)
-**Install script**
 ```bash
 curl -s https://raw.githubusercontent.com/SatoriCyber/satori-cli/main/scripts/install_script.sh | bash
 ```
