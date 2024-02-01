@@ -14,9 +14,9 @@ HAS_BASH="$(type "bash" &> /dev/null && echo true || echo false)"
 # Function to check if the tool is already installed
 function isInstalled() {
     if [ "$OS" == "windows" ]; then
-         pwsh -Command 'Get-Command -Name satori' &> /dev/null
+         IS_INSTALLED="$(pwsh -Command 'Get-Command -Name satori' &> /dev/null && echo true || echo false)"
     else
-        command -v "$APP_NAME" &> /dev/null
+        IS_INSTALLED="$(command -v "$APP_NAME" &> /dev/null && echo true || echo false)"
     fi
 }
 
@@ -138,6 +138,7 @@ echo "Installing $APP_NAME-$LATEST_APP_VERSION..."
 initArch
 initOS
 verifySupported
+isInstalled
 downloadCommand
 shellFile
 installDir
@@ -145,7 +146,7 @@ createInstallDir
 downloadUrl
 downloadFile
 
-if isInstalled; then
+if $IS_INSTALLED; then
     echo "The existing $APP_NAME binary has been replaced successfully."
 else
     updateProfileFile
