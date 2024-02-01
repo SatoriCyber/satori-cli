@@ -81,8 +81,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
             if-no-files-found: error
-            name: satori.exe
-            path: satori.exe
+            path: |
+              satori.exe
+              satori_auto_complete.ps1
       - name: Upload artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -147,12 +148,14 @@ jobs:
           uses: actions/download-artifact@v4
           with:
             merge-multiple: true
-            pattern: satori.exe
+            pattern: |
+              satori.exe
+              satori_auto_complete.ps1
         - id: get_version
           uses: battila7/get-version-action@v2             
         - name: Create release
           run: |
-              tar czf satori-${{ steps.get_version.outputs.version-without-v }}-windows.tar.gz satori.exe
+              tar czf satori-${{ steps.get_version.outputs.version-without-v }}-windows.tar.gz satori.exe satori_auto_complete.ps1
         - name: Upload artifacts
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
