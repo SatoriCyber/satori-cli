@@ -144,13 +144,11 @@ jobs:
     needs: [build-windows]
     runs-on: ubuntu-latest
     steps:
-        - name: download artifacts
+        - name: download artifact satori.exe
           uses: actions/download-artifact@v4
           with:
             merge-multiple: true
-            pattern: |
-              satori.exe
-              satori_auto_complete.ps1
+            name: satori.exe
         - name: Display artifacts
           run: |
             ls -R
