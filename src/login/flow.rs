@@ -25,6 +25,9 @@ const CREDENTIALS_FILE_NAME: &str = "credentials.json";
 // 15 minutes
 const JWT_ACCEPT_TIMEOUT_SECONDS: Duration = Duration::from_secs(60 * 15);
 
+#[cfg(test)]
+pub const REDIRECT_URL: std::sync::OnceLock<Url> = std::sync::OnceLock::new();
+
 type CodeChallenge = String;
 type CodeVerifier = String;
 
@@ -192,14 +195,13 @@ async fn get_jwt(
     open_browser: bool,
     invalid_cert: bool,
 ) -> Result<String, errors::LoginError> {
-    let addr = web_server::start(port, domain.clone(), invalid_cert)?;
-
     let (code_challenge, code_verifier) = generate_code_challenge_pair();
 
     let state = build_state();
     EXPECTED_STATE.set(state.clone()).unwrap();
 
     if open_browser {
+        let addr = web_server::start(port, domain.clone(), invalid_cert)?;
         // Need to handle a flow where we unable to open url to print the url
         with_browser(code_verifier, addr, &domain, &state, &code_challenge)
     } else {
@@ -223,10 +225,7 @@ async fn no_browser(
 ) -> Result<String, errors::LoginError> {
     let redirect_url = format!("{domain}/oauth/authorize/finish");
     let url = build_oauth_uri(domain, state, &code_challenge, &redirect_url)?;
-    log::info!(
-        "Go to the following link in your browser:\n\n {}\nEnter authorization code:",
-        url
-    );
+    redirect_url_to_user(&url);
     io::stdout().flush().unwrap();
     let mut jwt_base_64 = String::new();
 
@@ -241,6 +240,19 @@ async fn no_browser(
         satori_console::generate_token_oauth(domain, code, code_verifier, CLIENT_ID, invalid_cert)
             .await?;
     Ok(res.access_token)
+}
+
+#[cfg(not(test))]
+fn redirect_url_to_user(url: &Url) {
+    log::info!(
+        "Go to the following link in your browser:\n\n {}\nEnter authorization code:",
+        url
+    );
+}
+
+#[cfg(test)]
+fn redirect_url_to_user(url: &Url) {
+    REDIRECT_URL.set(url.to_owned()).unwrap();
 }
 
 fn with_browser(
