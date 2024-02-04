@@ -43,3 +43,10 @@ cargo-deb = "2.0.2"
 
 [profile.release]
 strip = true
+
+
+[package.metadata.release]
+# Instruct `cargo release` to not run `cargo publish` locally:
+# https://github.com/sunng87/cargo-release/blob/master/docs/reference.md#config-fields
+# See docs/releasing.md for details.
+disable-publish = true
