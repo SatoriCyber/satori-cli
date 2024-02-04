@@ -17,6 +17,7 @@ pub fn init() {
     builder.format_timestamp(None);
     builder.format_level(false);
     builder.format_target(false);
+    builder.target(env_logger::Target::Stdout);
 
     builder.init();
 }

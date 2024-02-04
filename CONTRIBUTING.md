@@ -56,11 +56,11 @@ git checkout main
 ```
 Verify first that all as expected:
 ```bash
-cargo release patch --no-publish
+cargo release patch
 ```
 If everything is ok, release a new version:
 ```bash
-cargo release patch --execute --no-publish
+cargo release patch --execute
 ```
 
 Go to [Github Releases](https://www.github.com/SatoriCyber/satori-cli/releases) and add a new release.
