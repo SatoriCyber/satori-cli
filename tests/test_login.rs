@@ -10,7 +10,7 @@ use satori_cli::{
     helpers::logger::{self, DEBUG},
     login::{self, flow::CREDENTIALS_FILE_NAME, LoginBuilder},
 };
-use tempdir::TempDir;
+use tempfile::{tempdir, TempDir};
 
 use crate::test_utils::mock_server;
 
@@ -24,7 +24,7 @@ const SATORI_ACCOUNT_ID: &str = "account_id";
 async fn test_login_run() {
     DEBUG.set(true).unwrap();
     logger::init();
-    let temp_dir = generate_temp_dir("test_login_run");
+    let temp_dir = generate_temp_dir();
 
     let server = MockServer::start();
     let address = server.base_url();
@@ -52,8 +52,8 @@ async fn test_login_run() {
     validate_credentials(&temp_dir);
 }
 
-fn generate_temp_dir(test_name: &str) -> TempDir {
-    TempDir::new(test_name).expect("Failed to create temporary directory")
+fn generate_temp_dir() -> TempDir {
+    tempdir().expect("Failed to create temporary directory")
 }
 
 async fn run_login(address: &str, temp_dir: &TempDir) {
