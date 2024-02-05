@@ -25,9 +25,6 @@ pub const CREDENTIALS_FILE_NAME: &str = "credentials.json";
 // 15 minutes
 const JWT_ACCEPT_TIMEOUT_SECONDS: Duration = Duration::from_secs(60 * 15);
 
-#[cfg(test)]
-pub const REDIRECT_URL: std::sync::OnceLock<Url> = std::sync::OnceLock::new();
-
 type CodeChallenge = String;
 type CodeVerifier = String;
 
@@ -245,7 +242,10 @@ where
 {
     let redirect_url = format!("{domain}/oauth/authorize/finish");
     let url = build_oauth_uri(domain, state, &code_challenge, &redirect_url)?;
-    redirect_url_to_user(&url);
+    log::info!(
+        "Go to the following link in your browser:\n\n {}\nEnter authorization code:",
+        url
+    );
     io::stdout().flush().unwrap();
     let jwt_base_64 = read_from_io(user_input_stream)?;
     let code = general_purpose::STANDARD.decode(jwt_base_64.trim().as_bytes())?;
