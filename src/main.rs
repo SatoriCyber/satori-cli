@@ -1,10 +1,12 @@
+use std::io;
+
 use anyhow::{anyhow, Result};
 use helpers::logger;
+use satori_cli::{helpers, login};
 
 mod cli;
-mod helpers;
+
 mod list;
-mod login;
 mod run;
 mod tools;
 
@@ -31,9 +33,13 @@ async fn main() {
 
 async fn handle_flow(flow: cli::Flow) -> Result<()> {
     match flow {
-        cli::Flow::Login(params) => login::run(&params)
-            .await
-            .map_err(|err| anyhow!("Failed to login: {}", err)),
+        cli::Flow::Login(params) => {
+            let reader = io::stdin();
+            let input = reader.lock();
+            login::run(&params, input)
+                .await
+                .map_err(|err| anyhow!("Failed to login: {}", err))
+        }
         cli::Flow::Run(params) => run::run(params)
             .await
             .map_err(|err| anyhow!("Failed to run: {}", err)),

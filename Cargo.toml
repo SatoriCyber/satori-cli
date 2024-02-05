@@ -9,6 +9,11 @@ homepage = "https://www.github.com/SatoriCyber/satori-cli"
 repository = "https://www.github.com/SatoriCyber/satori-cli"
 documentation = "https://www.github.com/SatoriCyber/satori-cli/blob/main/README.md"
 
+include = [
+    "src/**/*.rs",
+    "Cargo.toml",
+]
+
 [[bin]]
 name = "satori"
 path = "src/main.rs"
@@ -40,6 +45,9 @@ webbrowser = "0.8.12"
 [build-dependencies]
 cargo-deb = "2.0.2"
 
+[dev-dependencies]
+httpmock = "0.7.0"
+tempdir = "0.3"
 
 [profile.release]
 strip = true

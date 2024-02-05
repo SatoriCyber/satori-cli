@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::io::{BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
@@ -21,12 +21,9 @@ use super::data::{Credentials, CredentialsFormat, Login, CLIENT_ID};
 use super::errors;
 
 const OAUTH_URI: &str = "oauth/authorize";
-const CREDENTIALS_FILE_NAME: &str = "credentials.json";
+pub const CREDENTIALS_FILE_NAME: &str = "credentials.json";
 // 15 minutes
 const JWT_ACCEPT_TIMEOUT_SECONDS: Duration = Duration::from_secs(60 * 15);
-
-#[cfg(test)]
-pub const REDIRECT_URL: std::sync::OnceLock<Url> = std::sync::OnceLock::new();
 
 type CodeChallenge = String;
 type CodeVerifier = String;
@@ -47,11 +44,14 @@ pub async fn run_with_file(
         (credentials, None, None)
     } else {
         log::debug!("Failed to read credentials from file, starting login flow");
+        let reader = io::stdin();
+        let input = reader.lock();
         let jwt = get_jwt(
             params.port,
             params.domain.clone(),
             params.open_browser,
             params.invalid_cert,
+            input,
         )
         .await?;
         let user_info =
@@ -61,7 +61,7 @@ pub async fn run_with_file(
             get_database_credentials(&user_info.id, &params.domain, &jwt, params.invalid_cert)
                 .await?;
         if params.write_to_file {
-            write_to_file(&database_credentials)?;
+            write_to_file(&database_credentials, &params.file_path)?;
         }
         (database_credentials, Some(jwt), Some(user_info.account_id))
     };
@@ -84,11 +84,14 @@ pub async fn run_with_file(
             let jwt = match jwt {
                 Some(jwt) => jwt,
                 None => {
+                    let reader = io::stdin();
+                    let input = reader.lock();
                     get_jwt(
                         params.port,
                         params.domain.clone(),
                         params.open_browser,
                         params.invalid_cert,
+                        input,
                     )
                     .await?
                 }
@@ -122,12 +125,17 @@ pub async fn run_with_file(
 
 /// Login to Satori, save the JWT, returns the credentials
 /// Write to file if it is part of the parameters
-pub async fn run(params: &Login) -> Result<(), errors::LoginError> {
+/// `user_input_stream`: where to read the user input from, should be set to `io::stdin()` to get from stdio
+pub async fn run<R>(params: &Login, user_input_stream: R) -> Result<(), errors::LoginError>
+where
+    R: BufRead,
+{
     let jwt = get_jwt(
         params.port,
         params.domain.clone(),
         params.open_browser,
         params.invalid_cert,
+        user_input_stream,
     )
     .await?;
     let user_info =
@@ -135,7 +143,7 @@ pub async fn run(params: &Login) -> Result<(), errors::LoginError> {
     let database_credentials =
         get_database_credentials(&user_info.id, &params.domain, &jwt, params.invalid_cert).await?;
     if params.write_to_file {
-        write_to_file(&database_credentials)?;
+        write_to_file(&database_credentials, &params.file_path)?;
     } else {
         log::info!(
             "{}",
@@ -189,12 +197,16 @@ async fn get_database_credentials(
     )
 }
 
-async fn get_jwt(
+async fn get_jwt<R>(
     port: u16,
     domain: String,
     open_browser: bool,
     invalid_cert: bool,
-) -> Result<String, errors::LoginError> {
+    user_input_stream: R,
+) -> Result<String, errors::LoginError>
+where
+    R: BufRead,
+{
     let (code_challenge, code_verifier) = generate_code_challenge_pair();
 
     let state = build_state();
@@ -211,27 +223,31 @@ async fn get_jwt(
             code_challenge,
             &code_verifier,
             invalid_cert,
+            user_input_stream,
         )
         .await
     }
 }
 
-async fn no_browser(
+async fn no_browser<R>(
     domain: &str,
     state: &str,
     code_challenge: String,
     code_verifier: &str,
     invalid_cert: bool,
-) -> Result<String, errors::LoginError> {
+    user_input_stream: R,
+) -> Result<String, errors::LoginError>
+where
+    R: BufRead,
+{
     let redirect_url = format!("{domain}/oauth/authorize/finish");
     let url = build_oauth_uri(domain, state, &code_challenge, &redirect_url)?;
-    redirect_url_to_user(&url);
+    log::info!(
+        "Go to the following link in your browser:\n\n {}\nEnter authorization code:",
+        url
+    );
     io::stdout().flush().unwrap();
-    let mut jwt_base_64 = String::new();
-
-    io::stdin()
-        .read_line(&mut jwt_base_64)
-        .map_err(errors::LoginError::CodeReadError)?;
+    let jwt_base_64 = read_from_io(user_input_stream)?;
     let code = general_purpose::STANDARD.decode(jwt_base_64.trim().as_bytes())?;
     let code = String::from_utf8(code).unwrap();
     let code = extract_code(&code)?;
@@ -242,17 +258,15 @@ async fn no_browser(
     Ok(res.access_token)
 }
 
-#[cfg(not(test))]
-fn redirect_url_to_user(url: &Url) {
-    log::info!(
-        "Go to the following link in your browser:\n\n {}\nEnter authorization code:",
-        url
-    );
-}
-
-#[cfg(test)]
-fn redirect_url_to_user(url: &Url) {
-    REDIRECT_URL.set(url.to_owned()).unwrap();
+fn read_from_io<R>(mut reader: R) -> Result<String, errors::LoginError>
+where
+    R: BufRead,
+{
+    let mut input = String::new();
+    reader
+        .read_line(&mut input)
+        .map_err(errors::LoginError::CodeReadError)?;
+    Ok(input)
 }
 
 fn with_browser(
@@ -272,8 +286,11 @@ fn with_browser(
     wait_till_jwt()
 }
 
-fn write_to_file(database_credentials: &Credentials) -> Result<(), errors::LoginError> {
-    let file_path = default_app_folder::get()?.join(CREDENTIALS_FILE_NAME);
+fn write_to_file(
+    database_credentials: &Credentials,
+    file_path: &Path,
+) -> Result<(), errors::LoginError> {
+    let file_path = file_path.join(CREDENTIALS_FILE_NAME);
     // Create directories for the file
     create_directories_for_file(&file_path)
         .map_err(|err| errors::LoginError::FailedToCreateDirectories(err, file_path.clone()))?;
@@ -330,7 +347,7 @@ fn build_oauth_uri(
     })
 }
 
-pub fn credentials_as_string(credentials: &Credentials, format: &CredentialsFormat) -> String {
+fn credentials_as_string(credentials: &Credentials, format: &CredentialsFormat) -> String {
     match format {
         CredentialsFormat::Csv => format!(
             "{},{},{}",
