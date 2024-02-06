@@ -1,11 +1,11 @@
 use core::fmt;
-use std::sync::OnceLock;
+use std::{path::PathBuf, sync::OnceLock};
 
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::helpers::satori_console::DatabaseCredentials;
+use crate::helpers::{default_app_folder, satori_console::DatabaseCredentials};
 
 pub type Jwt = String;
 
@@ -38,6 +38,9 @@ pub struct Login {
     pub refresh: bool,
     #[builder(default = "false")]
     pub invalid_cert: bool,
+    // TODO: Remove unwrap
+    #[builder(default = "default_app_folder::get().unwrap()")]
+    pub file_path: PathBuf,
 }
 
 #[derive(Debug)]
@@ -65,7 +68,7 @@ impl From<DatabaseCredentials> for Credentials {
 }
 
 impl Credentials {
-    pub fn expires_soon(&self) -> bool {
+    pub(crate) fn expires_soon(&self) -> bool {
         log::debug!("Checking if credentials will expire soon");
         let now = Utc::now();
         let diff = self.expires_at - now;

@@ -4,7 +4,7 @@ use std::hash::Hash;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Clone)]
+#[derive(Deserialize, Clone, Serialize)]
 pub struct DatabaseCredentials {
     pub username: String,
     pub password: String,
@@ -21,21 +21,21 @@ impl fmt::Debug for DatabaseCredentials {
     }
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct OauthResponse {
     pub access_token: String,
     pub token_type: String,
     pub expires_in: u32,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserProfile {
     pub id: String,
     pub account_id: String,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DatastoreAccessDetailsDbs {
     pub count: usize,
@@ -44,13 +44,13 @@ pub struct DatastoreAccessDetailsDbs {
     pub datastore_details: Vec<DatastoreAccessDetails>,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 // The records stands for datasets, for now we don't need the data, just to count how many records we already got
 pub struct DataSet {
     pub id: String,
 }
-#[derive(Debug, serde::Deserialize, Clone)]
+#[derive(Debug, serde::Deserialize, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DatastoreAccessDetails {
     pub id: String,
@@ -77,14 +77,14 @@ impl Hash for DatastoreAccessDetails {
     }
 }
 
-#[derive(Debug, serde::Deserialize, Clone)]
+#[derive(Debug, serde::Deserialize, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum DatastoreSettings {
     #[serde(rename = "deploymentType")]
     MongoDeploymentType(MongoDeploymentType),
 }
 
-#[derive(Debug, serde::Deserialize, Clone)]
+#[derive(Debug, serde::Deserialize, Clone, serde::Serialize)]
 pub enum MongoDeploymentType {
     #[serde(rename = "MONGODB")]
     MongoDb,

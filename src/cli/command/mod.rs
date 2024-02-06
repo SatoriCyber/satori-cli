@@ -21,3 +21,12 @@ pub fn get() -> Command {
     }
     main_command
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn verify_cmd() {
+        get().debug_assert();
+    }
+}
