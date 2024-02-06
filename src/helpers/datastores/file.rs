@@ -1,20 +1,18 @@
-use std::{fs::OpenOptions, io::Write};
-
-use crate::helpers::default_app_folder;
+use std::{fs::OpenOptions, io::Write, path::Path};
 
 use super::{errors, DatastoresInfo};
 
 const DATASTORE_INFO_FILE_NAME: &str = "datastores.json";
 
-pub fn load() -> Result<DatastoresInfo, errors::DatastoresError> {
-    let datastore_info_file = default_app_folder::get()?.join(DATASTORE_INFO_FILE_NAME);
+pub fn load(path: &Path) -> Result<DatastoresInfo, errors::DatastoresError> {
+    let datastore_info_file = path.join(DATASTORE_INFO_FILE_NAME);
     log::debug!("Datastore info file: {:?}", datastore_info_file);
     let file = std::fs::File::open(datastore_info_file)?;
     Ok(serde_json::from_reader(file)?)
 }
 
-pub fn write(ds_info: &DatastoresInfo) -> Result<(), errors::DatastoresError> {
-    let datastore_info_file = default_app_folder::get()?.join(DATASTORE_INFO_FILE_NAME);
+pub fn write(ds_info: &DatastoresInfo, path: &Path) -> Result<(), errors::DatastoresError> {
+    let datastore_info_file = path.join(DATASTORE_INFO_FILE_NAME);
     log::debug!("Datastore info file: {:?}", datastore_info_file);
     let mut file = OpenOptions::new()
         .write(true)

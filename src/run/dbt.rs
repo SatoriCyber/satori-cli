@@ -2,6 +2,7 @@ use core::fmt;
 use std::{
     collections::HashMap,
     fs::{self, File},
+    io,
     path::PathBuf,
 };
 
@@ -37,7 +38,9 @@ pub async fn run(params: Dbt) -> Result<(), errors::RunError> {
         rewritten = true;
     }
     log::debug!("rewritten {:?}", rewritten);
-    let (credentials, _) = login::run_with_file(&params.login).await?;
+    let reader = io::stdin();
+    let input = reader.lock();
+    let (credentials, _) = login::run_with_file(&params.login, input).await?;
 
     if rewritten {
         let bk_path = params.profiles_path.with_file_name("profiles.bk");

@@ -1,6 +1,7 @@
 use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
+    io,
     path::Path,
 };
 
@@ -21,8 +22,10 @@ const AWS_SECRET_NAME: &str = "aws_secret_access_key";
 pub async fn run(params: Aws) -> Result<(), errors::ToolsError> {
     let mut credentials_content = get_ini_content_or_new(&params.credentials_path);
     let mut config_content = get_ini_content_or_new(&params.config_path);
+    let reader = io::stdin();
+    let input = reader.lock();
 
-    let (credentials, datastores_info) = login::run_with_file(&params.login).await?;
+    let (credentials, datastores_info) = login::run_with_file(&params.login, input).await?;
 
     let mut is_first = true;
     for (datastore_name, datastore_info) in get_aws_datastores(&datastores_info) {

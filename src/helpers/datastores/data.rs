@@ -9,7 +9,7 @@ use super::errors::GetHostError;
 
 pub type DatastoreName = String;
 
-#[derive(Deserialize, Debug, Clone, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize, Eq, PartialEq)]
 pub struct DatastoresInfo {
     pub account_id: String,
     pub datastores: HashMap<DatastoreName, DatastoreInfo>,
@@ -36,7 +36,7 @@ impl DatastoresInfo {
     }
 }
 
-#[derive(Deserialize, Debug, Clone, Serialize)]
+#[derive(Deserialize, Debug, Clone, Serialize, Eq, PartialEq)]
 pub struct DatastoreInfo {
     pub satori_host: String,
     pub databases: Vec<String>,
@@ -83,7 +83,7 @@ impl DatastoreInfo {
     }
 }
 
-#[derive(Debug, Deserialize, Clone, Serialize)]
+#[derive(Debug, Deserialize, Clone, Serialize, Eq, PartialEq)]
 pub enum MongoDeploymentType {
     MongoDB,
     MongoDBSrv,

@@ -1,3 +1,5 @@
+use satori_cli::helpers::default_app_folder::DefaultFolderError;
+
 #[derive(Debug, thiserror::Error)]
 pub enum CliError {
     #[error("Failed to open dbt_project.yml: {0}")]
@@ -8,4 +10,6 @@ pub enum CliError {
     HomeDirError(#[from] homedir::GetHomeError),
     #[error("Home dir not found")]
     HomeDirNotFound,
+    #[error("Home dir not found {0}")]
+    MissingHomeDir(#[from] DefaultFolderError),
 }

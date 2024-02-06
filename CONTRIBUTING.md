@@ -17,6 +17,13 @@ Before you start, ensure you have the following prerequisites installed:
    git clone https://github.com/SatoriCyber/satori-cli.git
    cd satori-cli
    ```
+2. Install cargo nextest
+Due to the fact we need to run each test in a separate process, we need to install cargo nextest.
+Install instruction can be found [here](https://nexte.st/book/pre-built-binaries.html)
+to run the tests:
+```bash
+cargo nextest run
+```
 
 ## Adding new tools to connect
 
