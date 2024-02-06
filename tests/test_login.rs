@@ -15,9 +15,7 @@ use httpmock::{Mock, MockServer};
 
 use satori_cli::{
     helpers::datastores::DatastoresInfo,
-    login::{
-        self, data::Credentials, flow::CREDENTIALS_FILE_NAME, Login, LoginBuilder,
-    },
+    login::{self, data::Credentials, flow::CREDENTIALS_FILE_NAME, Login, LoginBuilder},
 };
 use tempfile::{tempdir, TempDir};
 
