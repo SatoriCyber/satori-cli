@@ -92,7 +92,7 @@ pub enum MongoDeploymentType {
     MongoDbSrv,
 }
 
-#[derive(Debug, serde::Deserialize, Clone, Serialize, PartialEq)]
+#[derive(Debug, serde::Deserialize, Clone, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum DatastoreType {
     Snowflake,

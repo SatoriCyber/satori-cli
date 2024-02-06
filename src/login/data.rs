@@ -5,7 +5,10 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use crate::helpers::{default_app_folder, satori_console::DatabaseCredentials};
+use crate::helpers::{
+    default_app_folder::{self, DefaultFolderError},
+    satori_console::DatabaseCredentials,
+};
 
 pub type Jwt = String;
 
@@ -38,9 +41,9 @@ pub struct Login {
     pub refresh: bool,
     #[builder(default = "false")]
     pub invalid_cert: bool,
-    // TODO: Remove unwrap
-    #[builder(default = "default_app_folder::get().unwrap()")]
-    pub file_path: PathBuf,
+    /// Where Satori saves the files
+    #[builder(default = "default_app_folder::get()?")]
+    pub satori_folder_path: PathBuf,
 }
 
 #[derive(Debug)]
@@ -50,7 +53,7 @@ pub enum CredentialsFormat {
     Csv,
 }
 
-#[derive(Deserialize, Serialize, Clone)]
+#[derive(Deserialize, Serialize, Clone, PartialEq, Eq)]
 pub struct Credentials {
     pub username: String,
     pub password: String,
@@ -89,5 +92,11 @@ impl fmt::Debug for Credentials {
             .field("password", &"*********")
             .field("expires_at", &self.expires_at)
             .finish()
+    }
+}
+
+impl From<DefaultFolderError> for LoginBuilderError {
+    fn from(value: DefaultFolderError) -> Self {
+        LoginBuilderError::ValidationError(format!("Failed to get home folder error: {value:?}"))
     }
 }

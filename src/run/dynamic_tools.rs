@@ -1,3 +1,5 @@
+use std::io;
+
 use minijinja::{context, Value};
 
 use crate::{
@@ -13,7 +15,9 @@ use super::{errors, DynamicTool};
 const TOOLS_TEMPLATE_NAME: &str = "tools";
 
 pub async fn run(params: DynamicTool) -> Result<(), errors::RunError> {
-    let (credentials, datastores_info) = login::run_with_file(&params.login).await?;
+    let reader = io::stdin();
+    let input = reader.lock();
+    let (credentials, datastores_info) = login::run_with_file(&params.login, input).await?;
     let datastore_info = datastores_info
         .datastores
         .get(&params.datastore_name)

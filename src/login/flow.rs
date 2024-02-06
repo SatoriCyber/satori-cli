@@ -11,9 +11,9 @@ use rand::Rng;
 use reqwest::Url;
 use sha2::{Digest, Sha256};
 
+use crate::helpers::datastores;
 use crate::helpers::datastores::DatastoresInfo;
 use crate::helpers::satori_console;
-use crate::helpers::{datastores, default_app_folder};
 use crate::login::data::{CODE_VERIFIER, EXPECTED_STATE, JWT};
 use crate::login::web_server;
 
@@ -29,10 +29,14 @@ type CodeChallenge = String;
 type CodeVerifier = String;
 
 /// Try to load the config from file, if it fails triggers the login flow
-pub async fn run_with_file(
+pub async fn run_with_file<R>(
     params: &Login,
-) -> Result<(Credentials, DatastoresInfo), errors::LoginError> {
-    let file_path = default_app_folder::get()?.join(CREDENTIALS_FILE_NAME);
+    user_input_stream: R,
+) -> Result<(Credentials, DatastoresInfo), errors::LoginError>
+where
+    R: BufRead,
+{
+    let file_path = get_credentials_file_path(&params.satori_folder_path);
     let credentials = if params.refresh {
         None
     } else {
@@ -44,14 +48,12 @@ pub async fn run_with_file(
         (credentials, None, None)
     } else {
         log::debug!("Failed to read credentials from file, starting login flow");
-        let reader = io::stdin();
-        let input = reader.lock();
         let jwt = get_jwt(
             params.port,
             params.domain.clone(),
             params.open_browser,
             params.invalid_cert,
-            input,
+            user_input_stream,
         )
         .await?;
         let user_info =
@@ -61,14 +63,14 @@ pub async fn run_with_file(
             get_database_credentials(&user_info.id, &params.domain, &jwt, params.invalid_cert)
                 .await?;
         if params.write_to_file {
-            write_to_file(&database_credentials, &params.file_path)?;
+            write_to_file(&database_credentials, &params.satori_folder_path)?;
         }
         (database_credentials, Some(jwt), Some(user_info.account_id))
     };
     let datastores = if params.refresh {
         None
     } else {
-        match datastores::file::load() {
+        match datastores::file::load(&params.satori_folder_path) {
             Ok(datastores_info) => Some(datastores_info),
             Err(err) => {
                 log::debug!("Error loading datastores from file: {:?}", err);
@@ -116,7 +118,7 @@ pub async fn run_with_file(
                 params.invalid_cert,
             )
             .await?;
-            datastores::file::write(&ds_info)?;
+            datastores::file::write(&ds_info, &params.satori_folder_path)?;
             ds_info
         }
     };
@@ -143,7 +145,7 @@ where
     let database_credentials =
         get_database_credentials(&user_info.id, &params.domain, &jwt, params.invalid_cert).await?;
     if params.write_to_file {
-        write_to_file(&database_credentials, &params.file_path)?;
+        write_to_file(&database_credentials, &params.satori_folder_path)?;
     } else {
         log::info!(
             "{}",
@@ -159,7 +161,7 @@ where
             params.invalid_cert,
         )
         .await?;
-        datastores::file::write(&ds_info)?;
+        datastores::file::write(&ds_info, &params.satori_folder_path)?;
     }
     Ok(())
 }
@@ -168,7 +170,7 @@ fn refresh_datastores(params: &Login, user_info: &satori_console::UserProfile) -
     if params.refresh {
         return true;
     }
-    match datastores::file::load() {
+    match datastores::file::load(&params.satori_folder_path) {
         Ok(ds_info) => {
             if ds_info.account_id == user_info.account_id {
                 false
@@ -288,9 +290,9 @@ fn with_browser(
 
 fn write_to_file(
     database_credentials: &Credentials,
-    file_path: &Path,
+    directory_path: &Path,
 ) -> Result<(), errors::LoginError> {
-    let file_path = file_path.join(CREDENTIALS_FILE_NAME);
+    let file_path = get_credentials_file_path(directory_path);
     // Create directories for the file
     create_directories_for_file(&file_path)
         .map_err(|err| errors::LoginError::FailedToCreateDirectories(err, file_path.clone()))?;
@@ -411,4 +413,8 @@ fn extract_code(input_string: &str) -> Result<&str, errors::LoginError> {
         }
     }
     Err(errors::LoginError::CodeNotFound)
+}
+
+fn get_credentials_file_path(satori_folder_path: &Path) -> PathBuf {
+    satori_folder_path.join(CREDENTIALS_FILE_NAME)
 }

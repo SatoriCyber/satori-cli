@@ -1,0 +1,21 @@
+{
+    "count": 1,
+    "records": [
+        {
+            "id": "5b3b3b3e-3f3e-4e3e-8e3e-3e3e3e3e3e3e"
+        }
+    ],
+    "dataStoreDetails": [
+        {
+            "id": "dataStoreId",
+            "name": "dataStoreName",
+            "type": "POSTGRESQL",
+            "satoriHostname": "postgres.example.com",
+            "port": 5432,
+            "satoriAuthEnabled": true,
+            "dbs": [
+                "postgres"
+            ]
+        }
+    ]
+}

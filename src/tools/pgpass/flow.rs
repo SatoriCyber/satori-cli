@@ -1,5 +1,4 @@
 use core::fmt;
-use std::hash::Hash;
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::OpenOptionsExt;
 use std::{
@@ -9,6 +8,7 @@ use std::{
     io::{BufRead, BufReader, Seek, SeekFrom, Write},
     path::{Path, PathBuf},
 };
+use std::{hash::Hash, io};
 
 use crate::{
     helpers::datastores::DatastoresInfo,
@@ -24,7 +24,9 @@ const PGPASS_FILE_NAME: &str = ".pgpass";
 const PGPASS_FILE_NAME: &str = "pgpass.conf";
 
 pub async fn run(params: PgPass) -> Result<(), errors::ToolsError> {
-    let (credentials, datastores_info) = login::run_with_file(&params.login).await?;
+    let reader = io::stdin();
+    let input = reader.lock();
+    let (credentials, datastores_info) = login::run_with_file(&params.login, input).await?;
 
     let satori_pgpass = pgpass_from_satori_db(&datastores_info, &credentials);
 

@@ -1,12 +1,21 @@
 use clap::ArgMatches;
+use satori_cli::helpers;
 
-use crate::{cli::Flow, list::List};
+use crate::{
+    cli::{CliError, Flow},
+    list::{data::List, ResourceType},
+};
 
-pub fn build(args: &ArgMatches) -> Flow {
-    if args.get_flag("datastores") {
-        return Flow::List(List::Datastores);
-    }
-    // When more commands will be presented we will need to remove unwrap
-    let database = args.get_one::<String>("databases").unwrap();
-    Flow::List(List::Databases(database.to_owned()))
+pub fn build(args: &ArgMatches) -> Result<Flow, CliError> {
+    let satori_folder_path = helpers::default_app_folder::get()?;
+    let resource_type = if args.get_flag("datastores") {
+        ResourceType::Datastores
+    } else {
+        let database = args.get_one::<String>("databases").unwrap();
+        ResourceType::Databases(database.to_owned())
+    };
+    Ok(Flow::List(List {
+        resource_type,
+        satori_folder_path,
+    }))
 }
