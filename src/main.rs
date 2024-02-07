@@ -47,7 +47,9 @@ async fn handle_flow(flow: cli::Flow) -> Result<()> {
             cli::auto_complete(params, out);
             Ok(())
         }
-        cli::Flow::List(params) => list::run(params).map_err(|err| anyhow!("{}", err)),
+        cli::Flow::List(params) => {
+            list::run(params, &mut io::stdout()).map_err(|err| anyhow!("{}", err))
+        }
         cli::Flow::Tools(params) => tools::run(params).await.map_err(|err| anyhow!("{}", err)),
     }
 }
