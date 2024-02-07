@@ -39,7 +39,7 @@ pub struct UserProfile {
 #[serde(rename_all = "camelCase")]
 pub struct DatastoreAccessDetailsDbs {
     pub count: usize,
-    pub records: Vec<DataSet>,
+    pub records: Option<Vec<DataSet>>,
     #[serde(rename = "dataStoreDetails")]
     pub datastore_details: Vec<DatastoreAccessDetails>,
 }
