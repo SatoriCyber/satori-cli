@@ -23,3 +23,9 @@ pub enum GetHostError {
     #[error("MongoDB without deployment type")]
     MongoMissingDeploymentType,
 }
+
+#[derive(Debug, Error)]
+pub enum ToDsInfoError {
+    #[error("Missing satori hostname")]
+    MissingSatoriHostname,
+}
