@@ -56,7 +56,7 @@ pub struct DatastoreAccessDetails {
     pub id: String,
     pub name: String,
     pub r#type: DatastoreType,
-    pub satori_hostname: String,
+    pub satori_hostname: Option<String>,
     pub port: Option<u16>,
     pub satori_auth_enabled: bool,
     #[serde(rename = "dataStoreSettings")]
@@ -145,5 +145,12 @@ mod tests {
         let as_str = "API_SERVER";
         let as_type: DatastoreType = serde_json::from_str(&format!("\"{}\"", as_str)).unwrap();
         assert_eq!(as_type, DatastoreType::ApiServer);
+    }
+
+    #[test]
+    fn test_satori_hostname_null() {
+        let server_response =
+            include_str!("test_files/datastore_access_details_satori_hostname_null.json");
+        serde_json::from_str::<DatastoreAccessDetails>(server_response).unwrap();
     }
 }

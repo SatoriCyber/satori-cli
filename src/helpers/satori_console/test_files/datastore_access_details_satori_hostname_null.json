@@ -1,0 +1,12 @@
+{
+    "id": "f15c3e5f-8f59-4b8d-bdca-aa487e3be6f6",
+    "name": "Test",
+    "type": "DATABRICKS",
+    "satoriHostname": null,
+    "port": null,
+    "satoriAuthEnabled": false,
+    "dataStoreSettings": null,
+    "dbs": [
+      "db_without_location_field_1"
+    ]
+  }

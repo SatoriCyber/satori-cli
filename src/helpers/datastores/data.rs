@@ -5,7 +5,7 @@ use std::hash::Hash;
 use crate::helpers::satori_console::MongoDeploymentType as SatoriConsoleMongoDeploymentType;
 use crate::helpers::satori_console::{DatastoreAccessDetails, DatastoreSettings, DatastoreType};
 
-use super::errors::GetHostError;
+use super::errors::{GetHostError, ToDsInfoError};
 
 pub type DatastoreName = String;
 
@@ -22,11 +22,9 @@ impl DatastoresInfo {
     ) -> Self {
         let datastores = value
             .iter()
-            .map(|datastore| {
-                (
-                    datastore.name.clone(),
-                    DatastoreInfo::from(datastore.clone()),
-                )
+            .filter_map(|datastore| {
+                let datastore_info = DatastoreInfo::try_from(datastore.clone()).ok()?;
+                Some((datastore.name.clone(), datastore_info))
             })
             .collect();
         Self {
@@ -51,16 +49,20 @@ impl Hash for DatastoreInfo {
     }
 }
 
-impl From<DatastoreAccessDetails> for DatastoreInfo {
-    fn from(value: DatastoreAccessDetails) -> Self {
+impl TryFrom<DatastoreAccessDetails> for DatastoreInfo {
+    type Error = ToDsInfoError;
+    fn try_from(value: DatastoreAccessDetails) -> Result<Self, Self::Error> {
         let deployment_type = value.datastore_settings.map(MongoDeploymentType::from);
-        DatastoreInfo {
-            satori_host: value.satori_hostname,
+        let satori_host = value
+            .satori_hostname
+            .ok_or(ToDsInfoError::MissingSatoriHostname)?;
+        Ok(DatastoreInfo {
+            satori_host,
             databases: value.dbs,
             port: value.port,
             r#type: value.r#type,
             deployment_type,
-        }
+        })
     }
 }
 
