@@ -109,7 +109,10 @@ pub async fn datastores_access_details(
     let first_call =
         get_datastore_access_details_internal(&address, client_id, jwt, invalid_cert, page).await?;
     let mut results = HashSet::from_iter(first_call.datastore_details);
-    let mut fetched_records = first_call.records.len();
+    let mut fetched_records = first_call.records.unwrap_or_else(Vec::new).len();
+    if fetched_records == 0 {
+        log::warn!("No datastores are available for you.")
+    }
     page += 1;
 
     while fetched_records < first_call.count {
@@ -121,7 +124,7 @@ pub async fn datastores_access_details(
         let new_records =
             get_datastore_access_details_internal(&address, client_id, jwt, invalid_cert, page)
                 .await?;
-        fetched_records += new_records.records.len();
+        fetched_records += new_records.records.unwrap_or_else(Vec::new).len();
         page += 1;
         results.extend(new_records.datastore_details);
     }
