@@ -70,6 +70,17 @@ impl From<DatabaseCredentials> for Credentials {
     }
 }
 
+#[allow(clippy::from_over_into)]
+impl Into<DatabaseCredentials> for Credentials {
+    fn into(self) -> DatabaseCredentials {
+        DatabaseCredentials {
+            username: self.username,
+            password: self.password,
+            expires_at: self.expires_at,
+        }
+    }
+}
+
 impl Credentials {
     pub(crate) fn expires_soon(&self) -> bool {
         log::debug!("Checking if credentials will expire soon");

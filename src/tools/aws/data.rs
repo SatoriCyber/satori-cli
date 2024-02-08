@@ -1,8 +1,11 @@
 use std::path::PathBuf;
 
+use derive_builder::Builder;
+
 use crate::login::Login;
 
-#[derive(Debug)]
+#[derive(Debug, Builder)]
+#[builder(pattern = "owned")]
 pub struct Aws {
     pub login: Login,
     pub credentials_path: PathBuf,

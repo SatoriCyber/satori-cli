@@ -2,13 +2,12 @@ use std::io;
 
 use anyhow::{anyhow, Result};
 use helpers::logger;
-use satori_cli::{helpers, login};
+use satori_cli::{helpers, login, tools};
 
 mod cli;
 
 mod list;
 mod run;
-mod tools;
 
 #[tokio::main]
 async fn main() {
@@ -32,14 +31,12 @@ async fn main() {
 }
 
 async fn handle_flow(flow: cli::Flow) -> Result<()> {
+    let reader = io::stdin();
+    let input = reader.lock();
     match flow {
-        cli::Flow::Login(params) => {
-            let reader = io::stdin();
-            let input = reader.lock();
-            login::run(&params, input)
-                .await
-                .map_err(|err| anyhow!("Failed to login: {}", err))
-        }
+        cli::Flow::Login(params) => login::run(&params, input)
+            .await
+            .map_err(|err| anyhow!("Failed to login: {}", err)),
         cli::Flow::Run(params) => run::run(params)
             .await
             .map_err(|err| anyhow!("Failed to run: {}", err)),
@@ -50,6 +47,8 @@ async fn handle_flow(flow: cli::Flow) -> Result<()> {
         cli::Flow::List(params) => {
             list::run(params, &mut io::stdout()).map_err(|err| anyhow!("{}", err))
         }
-        cli::Flow::Tools(params) => tools::run(params).await.map_err(|err| anyhow!("{}", err)),
+        cli::Flow::Tools(params) => tools::run(params, input)
+            .await
+            .map_err(|err| anyhow!("{}", err)),
     }
 }

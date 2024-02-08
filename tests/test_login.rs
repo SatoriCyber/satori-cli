@@ -2,59 +2,41 @@
 
 mod test_utils;
 
-use std::{
-    fs,
-    future::Future,
-    path::{Path, PathBuf},
-};
+use std::{future::Future, path::Path};
 
-use base64::{engine::general_purpose, Engine};
-
-use chrono::Utc;
-use httpmock::{Mock, MockServer};
+use httpmock::MockServer;
 
 use satori_cli::{
     helpers::datastores::DatastoresInfo,
     login::{self, data::Credentials, flow::CREDENTIALS_FILE_NAME, Login, LoginBuilder},
 };
-use tempfile::{tempdir, TempDir};
+use tempfile::TempDir;
+use test_utils::{
+    constants::{ACCESS_TOKEN, CODE_CHALLENGE, SATORI_ACCOUNT_ID, SATORI_USER_ID},
+    login_helpers::build_login,
+    mock_server::{
+        get_encoded_challenge, run_server_no_asserts, DatabaseCredentialsMock, DatastoresMock,
+        ServerJwtMock, UserInfoMock,
+    },
+};
 
-use crate::test_utils::mock_server;
-
-const CODE_CHALLENGE: &str = "test";
-const RESPONSE_CODE: &str = "code=test";
-const ACCESS_TOKEN: &str = "some_token";
-const SATORI_USER_ID: &str = "user_id";
-const SATORI_ACCOUNT_ID: &str = "account_id";
-const ACCESS_DETAILS_DBS_RESPONSE_DIR: &str = "tests/server_responses/access_details_dbs";
-const DATASTORES_DIR: &str = "tests/datastores_files";
-const CREDENTIALS_DIR: &str = "tests/credentials_files";
-
-type ServerJwtMock<'a> = Mock<'a>;
-type UserInfoMock<'a> = Mock<'a>;
-type DatabaseCredentialsMock<'a> = Mock<'a>;
-type DatastoresMock<'a> = Mock<'a>;
+use crate::test_utils::{
+    credentials::{
+        get_new_credentials_expire_two_hours, get_old_credentials_expire_two_hours,
+        get_old_expired_credentials, write_credentials_temp_dir,
+    },
+    datastores::{get_mock_datastores, write_datastores_temp_dir},
+    mock_server::{
+        get_access_details_db_empty_response_path, get_access_details_db_single_response_path,
+    },
+    temp_dir,
+};
 
 #[tokio::test]
 async fn test_login_run() {
-    let temp_dir = generate_temp_dir();
-    let datastores_entries_response_path = get_access_details_db_empty_response_path();
-    run_login_with_server_assert_all(
-        &temp_dir,
-        &datastores_entries_response_path,
-        LoginBuilder::default(),
-        run_login,
-    )
-    .await;
-    validate_credentials(&temp_dir);
-}
-
-#[tokio::test]
-async fn test_login_run_datastores_validation() {
-    let temp_dir = generate_temp_dir();
-    let expected_datastores_info = get_expected_datastores_info("single_entry.json");
-
+    let temp_dir = temp_dir::generate();
     let datastores_entries_response = get_access_details_db_single_response_path();
+
     run_login_with_server_assert_all(
         &temp_dir,
         &datastores_entries_response,
@@ -62,22 +44,22 @@ async fn test_login_run_datastores_validation() {
         run_login,
     )
     .await;
+    let expected_credentials = get_new_credentials_expire_two_hours();
+    validate_credentials(&temp_dir, expected_credentials);
 
+    let expected_datastores_info = get_mock_datastores("single_entry.json");
     let results_datastores_info = get_result_datastores_info(&temp_dir);
     assert_eq!(expected_datastores_info, results_datastores_info);
 }
 
 #[tokio::test]
-/// Validates that if the datastores.json is already present, we don't refresh it.
-async fn test_login_run_datastores_file_present_validation() {
-    let temp_dir = generate_temp_dir();
+/// If credentials are not present, but datastores.json is, we don't refresh the datastores.json file.
+async fn test_login_run_datastores_file_present() {
+    let temp_dir = temp_dir::generate();
     let datastores_entries_response = get_access_details_db_single_response_path();
-    let expected_datastores_info = get_expected_datastores_info("another_entry.json");
+    let expected_datastores_info = get_mock_datastores("another_entry.json");
 
-    let datastores_file = temp_dir.path().join("datastores.json");
-    let contents = serde_json::to_string(&expected_datastores_info).unwrap();
-
-    fs::write(datastores_file, contents).unwrap();
+    write_datastores_temp_dir(&expected_datastores_info, &temp_dir);
 
     run_login_with_server_assert_all_beside_datastores(
         &temp_dir,
@@ -92,16 +74,14 @@ async fn test_login_run_datastores_file_present_validation() {
 }
 
 #[tokio::test]
-/// Validates that if the datastores.json is already present, and there is refresh flag we refresh.
-async fn test_login_run_datastores_file_present_refresh() {
-    let temp_dir = generate_temp_dir();
+/// When refresh is set, we refresh both credentials and datastores.json file.
+async fn test_login_run_refresh() {
+    let temp_dir = temp_dir::generate();
     let datastores_entries_response = get_access_details_db_single_response_path();
-    let current_datastores_info = get_expected_datastores_info("another_entry.json");
+    let current_datastores_info = get_mock_datastores("another_entry.json");
 
-    let datastores_file = temp_dir.path().join("datastores.json");
-    let contents = serde_json::to_string(&current_datastores_info).unwrap();
+    write_datastores_temp_dir(&current_datastores_info, &temp_dir);
 
-    fs::write(datastores_file, contents).unwrap();
     let login_builder = LoginBuilder::default().refresh(true);
     run_login_with_server_assert_all(
         &temp_dir,
@@ -112,45 +92,23 @@ async fn test_login_run_datastores_file_present_refresh() {
     .await;
 
     let results_datastores_info = get_result_datastores_info(&temp_dir);
+    let expected_credentials = get_new_credentials_expire_two_hours();
+    validate_credentials(&temp_dir, expected_credentials);
 
-    let expected_datastores_info = get_expected_datastores_info("single_entry.json");
+    let expected_datastores_info = get_mock_datastores("single_entry.json");
     assert_eq!(expected_datastores_info, results_datastores_info);
 }
 
+/// Test run with file, where there is credentials file which isn't expired
+/// Expect that we don't refresh the credentials and datastores.json file
 #[tokio::test]
-/// Test run with file, where there is no credentials file
-async fn test_login_run_with_file_no_previous_credentials() {
-    let temp_dir = generate_temp_dir();
-    let datastores_entries_response_path = get_access_details_db_empty_response_path();
-    run_login_with_server_assert_all(
-        &temp_dir,
-        &datastores_entries_response_path,
-        LoginBuilder::default(),
-        run_login_with_file,
-    )
-    .await;
-    validate_credentials(&temp_dir);
-}
-
-#[tokio::test]
-/// Test run with file, where there is credentials file
 async fn test_login_run_with_file_with_previous_credentials() {
-    let temp_dir = generate_temp_dir();
-    let mut expected_credentials = get_expected_credentials("basic_credentials.json");
-    let expected_datastores_info = get_expected_datastores_info("another_entry.json");
+    let temp_dir = temp_dir::generate();
+    let expected_credentials = get_old_credentials_expire_two_hours();
+    let expected_datastores_info = get_mock_datastores("another_entry.json");
 
-    // Create a file with the credentials which will expire in two hours from now, so we won't refresh them
-    let current_time = Utc::now();
-    let expires_at = current_time + chrono::Duration::minutes(120);
-    expected_credentials.expires_at = expires_at;
-
-    let credentials_file = temp_dir.path().join(CREDENTIALS_FILE_NAME);
-    let contents = serde_json::to_string(&expected_credentials).unwrap();
-    fs::write(credentials_file, contents).unwrap();
-
-    let datastores_info_file = temp_dir.path().join("datastores.json");
-    let contents = serde_json::to_string(&expected_datastores_info).unwrap();
-    fs::write(datastores_info_file, contents).unwrap();
+    write_credentials_temp_dir(&expected_credentials, &temp_dir);
+    write_datastores_temp_dir(&expected_datastores_info, &temp_dir);
 
     let datastores_entries_response_path = get_access_details_db_empty_response_path();
     run_login_with_server_assert_no_calls_to_server(
@@ -164,25 +122,15 @@ async fn test_login_run_with_file_with_previous_credentials() {
     assert_eq!(expected_credentials, results_credentials);
 }
 
+/// Test run with file, credentials file is expired, we refresh the credentials file.
 #[tokio::test]
-/// Test run with file, where there is credentials file but they expire
-async fn test_login_run_with_file_with_previous_credentials_expire() {
-    let temp_dir = generate_temp_dir();
-    let mut expired_credentials = get_expected_credentials("basic_credentials.json");
-    let expected_datastores_info = get_expected_datastores_info("another_entry.json");
+async fn test_login_run_with_file_with_credentials_expire() {
+    let temp_dir = temp_dir::generate();
+    let expired_credentials = get_old_expired_credentials();
+    let expected_datastores_info = get_mock_datastores("another_entry.json");
 
-    // Create a file with the credentials which will expire in two hours from now, so we won't refresh them
-    let current_time = Utc::now();
-    let expires_at = current_time - chrono::Duration::minutes(120);
-    expired_credentials.expires_at = expires_at;
-
-    let credentials_file = temp_dir.path().join(CREDENTIALS_FILE_NAME);
-    let contents = serde_json::to_string(&expired_credentials).unwrap();
-    fs::write(credentials_file, contents).unwrap();
-
-    let datastores_info_file = temp_dir.path().join("datastores.json");
-    let contents = serde_json::to_string(&expected_datastores_info).unwrap();
-    fs::write(datastores_info_file, contents).unwrap();
+    write_credentials_temp_dir(&expired_credentials, &temp_dir);
+    write_datastores_temp_dir(&expected_datastores_info, &temp_dir);
 
     let datastores_entries_response_path = get_access_details_db_empty_response_path();
     run_login_with_server_assert_all_beside_datastores(
@@ -192,7 +140,8 @@ async fn test_login_run_with_file_with_previous_credentials_expire() {
         run_login_with_file,
     )
     .await;
-    validate_credentials(&temp_dir);
+    let expected_credentials = get_new_credentials_expire_two_hours();
+    validate_credentials(&temp_dir, expected_credentials);
 }
 
 async fn run_login_with_server_assert_all<F, Fut>(
@@ -201,8 +150,8 @@ async fn run_login_with_server_assert_all<F, Fut>(
     login_builder: LoginBuilder,
     run_function: F,
 ) where
-    F: FnOnce(Login) -> Fut + Send + 'static, // Closure takes an i32 argument and returns a future
-    Fut: Future<Output = ()> + 'static,       // The future returned by the closure
+    F: FnOnce(Login) -> Fut + Send + 'static,
+    Fut: Future<Output = ()> + 'static,
 {
     let server = MockServer::start();
     let (server_jwt_mock, user_info_mock, database_credentials_mock, datastores_mock) =
@@ -227,8 +176,8 @@ async fn run_login_with_server_assert_all_beside_datastores<F, Fut>(
     login_builder: LoginBuilder,
     run_function: F,
 ) where
-    F: FnOnce(Login) -> Fut + Send + 'static, // Closure takes an i32 argument and returns a future
-    Fut: Future<Output = ()> + 'static,       // The future returned by the closure
+    F: FnOnce(Login) -> Fut + Send + 'static,
+    Fut: Future<Output = ()> + 'static,
 {
     let server = MockServer::start();
     let (server_jwt_mock, user_info_mock, database_credentials_mock, datastores_mock) =
@@ -253,8 +202,8 @@ async fn run_login_with_server_assert_no_calls_to_server<F, Fut>(
     login_builder: LoginBuilder,
     run_function: F,
 ) where
-    F: FnOnce(Login) -> Fut + Send + 'static, // Closure takes an i32 argument and returns a future
-    Fut: Future<Output = ()> + 'static,       // The future returned by the closure
+    F: FnOnce(Login) -> Fut + Send + 'static,
+    Fut: Future<Output = ()> + 'static,
 {
     let server = MockServer::start();
     let (server_jwt_mock, user_info_mock, database_credentials_mock, datastores_mock) =
@@ -286,36 +235,25 @@ async fn run_login_with_server_no_asserts<'b, F, Fut>(
     DatastoresMock<'b>,
 )
 where
-    F: FnOnce(Login) -> Fut + Send + 'static, // Closure takes an i32 argument and returns a future
-    Fut: Future<Output = ()> + 'static,       // The future returned by the closure
+    F: FnOnce(Login) -> Fut + Send + 'static,
+    Fut: Future<Output = ()> + 'static,
 {
     let address = server.base_url();
+    let login_params = build_login(login_builder, &address, &temp_dir);
 
-    let server_jwt_mock = mock_server::oauth(&server, CODE_CHALLENGE, ACCESS_TOKEN.to_string());
-    let user_info_mock = mock_server::user_info(
-        &server,
+    let mocks = run_server_no_asserts(
+        server,
+        datastores_info_file_path,
+        CODE_CHALLENGE,
+        ACCESS_TOKEN.to_string(),
         SATORI_USER_ID.to_string(),
         SATORI_ACCOUNT_ID.to_string(),
-        ACCESS_TOKEN,
-    );
-    let database_credentials_mock =
-        mock_server::database_credentials(&server, SATORI_USER_ID, ACCESS_TOKEN);
-    let datastores_mock =
-        mock_server::access_details_db(&server, ACCESS_TOKEN, datastores_info_file_path);
+    )
+    .await;
 
-    let login_params = build_login(login_builder, &address, &temp_dir);
     run_function(login_params).await;
 
-    (
-        server_jwt_mock,
-        user_info_mock,
-        database_credentials_mock,
-        datastores_mock,
-    )
-}
-
-fn generate_temp_dir() -> TempDir {
-    tempdir().expect("Failed to create temporary directory")
+    mocks
 }
 
 async fn run_login(login: Login) {
@@ -330,54 +268,15 @@ async fn run_login_with_file(login: Login) {
         .unwrap();
 }
 
-fn get_encoded_challenge() -> Vec<u8> {
-    let encoded_response_code = general_purpose::STANDARD.encode(RESPONSE_CODE);
-    encoded_response_code.as_bytes().to_vec()
-}
-
-fn validate_credentials(temp_dir: &TempDir) {
+fn validate_credentials(temp_dir: &TempDir, expected_credentials: Credentials) {
     let credentials = get_actual_credentials(temp_dir);
-    assert_eq!(credentials.username, "db_username");
-    assert_eq!(credentials.password, "db_password");
+    assert_eq!(credentials.username, credentials.username);
+    assert_eq!(credentials.password, expected_credentials.password);
 }
 
 fn get_actual_credentials(temp_dir: &TempDir) -> Credentials {
     let credentials = std::fs::read_to_string(temp_dir.path().join(CREDENTIALS_FILE_NAME)).unwrap();
     serde_json::from_str::<login::data::Credentials>(&credentials).unwrap()
-}
-
-fn build_login(login_builder: LoginBuilder, address: &str, temp_dir: &TempDir) -> Login {
-    login_builder
-        .open_browser(false)
-        .domain(address.to_string())
-        .satori_folder_path(temp_dir.path().to_path_buf())
-        .format(login::data::CredentialsFormat::Json)
-        .build()
-        .unwrap()
-}
-
-fn get_access_details_db_empty_response_path() -> PathBuf {
-    get_access_details_db_path("empty_response.json")
-}
-
-fn get_access_details_db_single_response_path() -> PathBuf {
-    get_access_details_db_path("single_entry_response.json")
-}
-
-fn get_access_details_db_path(filename: &str) -> PathBuf {
-    PathBuf::from(ACCESS_DETAILS_DBS_RESPONSE_DIR).join(filename)
-}
-
-fn get_expected_datastores_info(filename: &str) -> DatastoresInfo {
-    let file_path = PathBuf::from(DATASTORES_DIR).join(filename);
-    let file = std::fs::File::open(file_path).unwrap();
-    serde_json::from_reader(file).unwrap()
-}
-
-fn get_expected_credentials(filename: &str) -> Credentials {
-    let file_path = PathBuf::from(CREDENTIALS_DIR).join(filename);
-    let file = std::fs::File::open(file_path).unwrap();
-    serde_json::from_reader(file).unwrap()
 }
 
 fn get_result_datastores_info(temp_dir: &TempDir) -> DatastoresInfo {

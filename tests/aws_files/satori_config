@@ -1,0 +1,6 @@
+
+[profile satori_athena_939918]
+endpoint_url=https://athena.satoricyber.net
+
+[profile satori_s3_438177]
+endpoint_url=https://s3.satoricyber.net
