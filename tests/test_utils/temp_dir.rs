@@ -13,8 +13,3 @@ where
     let contents = serde_json::to_string(&obj).unwrap();
     std::fs::write(file_path, contents).unwrap();
 }
-
-pub fn write_to_temp_dir_string(temp_dir: &TempDir, obj: String, file_name: &str) {
-    let file_path = temp_dir.path().join(file_name);
-    std::fs::write(file_path, obj).unwrap();
-}

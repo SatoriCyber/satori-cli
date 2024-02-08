@@ -142,9 +142,13 @@ mod tests {
             .datastores
             .insert("non_aws2".to_string(), non_aws_datastore.clone());
         let aws_datastores = get_aws_datastores(&datastores_info);
+        let aws_datastores_names = aws_datastores
+            .iter()
+            .map(|(name, _)| *name)
+            .collect::<Vec<&str>>();
+        assert!(aws_datastores_names.contains(&"athena1"));
+        assert!(aws_datastores_names.contains(&"s3_1"));
 
         assert_eq!(aws_datastores.len(), 2);
-        assert_eq!(aws_datastores[0].0, "athena1");
-        assert_eq!(aws_datastores[1].0, "s3_1");
     }
 }
