@@ -12,4 +12,7 @@ pub enum CliError {
     HomeDirNotFound,
     #[error("Home dir not found {0}")]
     MissingHomeDir(#[from] DefaultFolderError),
+    #[cfg(target_family = "windows")]
+    #[error("Failed to create directory for path {1}: {0}")]
+    FailedToCreateDirectories(std::io::Error, std::path::PathBuf),
 }

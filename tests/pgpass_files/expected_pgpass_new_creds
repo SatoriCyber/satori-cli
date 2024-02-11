@@ -1,0 +1,4 @@
+postgres.example.com:5432:postgres:NEW_USER:NEW_PASSWORD
+postgres.example.com:5432:customers:NEW_USER:NEW_PASSWORD
+redshift.example.com:5432:redshift_db:NEW_USER:NEW_PASSWORD
+redshift.example.com:5432:customers:NEW_USER:NEW_PASSWORD

@@ -22,7 +22,4 @@ pub enum ToolsError {
     FailedToWriteToFile(std::io::Error, std::path::PathBuf),
     #[error("{0}")]
     GetHostError(#[from] GetHostError),
-    #[cfg(target_family = "windows")]
-    #[error("Failed to create directory for path {1}: {0}")]
-    FailedToCreateDirectories(std::io::Error, std::path::PathBuf),
 }
