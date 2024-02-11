@@ -1,4 +1,5 @@
 use core::fmt;
+use std::hash::Hash;
 #[cfg(target_family = "unix")]
 use std::os::unix::fs::OpenOptionsExt;
 use std::{
@@ -6,9 +7,8 @@ use std::{
     fs::{File, OpenOptions},
     hash::Hasher,
     io::{BufRead, BufReader, Seek, SeekFrom, Write},
-    path::{Path, PathBuf},
+    path::PathBuf,
 };
-use std::{hash::Hash, io};
 
 use crate::{
     helpers::datastores::DatastoresInfo,
@@ -18,20 +18,19 @@ use crate::{
 
 use super::PgPass;
 
-#[cfg(target_family = "unix")]
-const PGPASS_FILE_NAME: &str = ".pgpass";
-#[cfg(target_family = "windows")]
-const PGPASS_FILE_NAME: &str = "pgpass.conf";
-
-pub async fn run(params: PgPass) -> Result<(), errors::ToolsError> {
-    let reader = io::stdin();
-    let input = reader.lock();
-    let (credentials, datastores_info) = login::run_with_file(&params.login, input).await?;
+pub async fn run<R>(params: PgPass, user_input_stream: R) -> Result<(), errors::ToolsError>
+where
+    R: std::io::BufRead,
+{
+    let (credentials, datastores_info) =
+        login::run_with_file(&params.login, user_input_stream).await?;
 
     let satori_pgpass = pgpass_from_satori_db(&datastores_info, &credentials);
+    log::debug!("Satori pgpass: {satori_pgpass:?}");
 
-    let pgpass_file = get_pgpass_file_path()?;
+    let pgpass_file = params.path;
     if pgpass_file.exists() {
+        log::debug!("Pgpass file exists, updating it");
         let mut file = get_pgpass_file(pgpass_file)?;
         let existing_pgpass = pgpass_from_file(&file)?;
 
@@ -58,32 +57,13 @@ pub async fn run(params: PgPass) -> Result<(), errors::ToolsError> {
         }
     } else {
         let mut file = create_pgpass_file(pgpass_file)?;
+        log::debug!("Created pgpass file at {file:?}");
         for entry in satori_pgpass {
             writeln!(file, "{entry}").map_err(errors::ToolsError::FailedWritingToPgpassFile)?;
         }
     }
 
     Ok(())
-}
-
-#[cfg(target_family = "unix")]
-fn get_pgpass_file_path() -> Result<PathBuf, errors::ToolsError> {
-    Ok(homedir::get_my_home()?
-        .ok_or_else(|| errors::ToolsError::HomeDirNotFound)?
-        .join(Path::new(PGPASS_FILE_NAME)))
-}
-
-#[cfg(target_family = "windows")]
-fn get_pgpass_file_path() -> Result<PathBuf, errors::ToolsError> {
-    let pgpass_dir = homedir::get_my_home()?
-        .ok_or_else(|| errors::ToolsError::HomeDirNotFound)?
-        .join(Path::new("AppData/Roaming/postgresql"));
-    if !pgpass_dir.exists() {
-        std::fs::create_dir(&pgpass_dir).map_err(|err| {
-            errors::ToolsError::FailedToCreateDirectories(err, pgpass_dir.clone())
-        })?;
-    }
-    Ok(pgpass_dir.join(Path::new(PGPASS_FILE_NAME)))
 }
 
 fn get_pgpass_file(pgpass_file: PathBuf) -> Result<File, errors::ToolsError> {
@@ -114,8 +94,8 @@ fn set_permissions(_open_options: &mut OpenOptions) {
     log::debug!("Need to implement the windows mode");
 }
 
-#[derive(Eq)]
-struct PgPassEntry {
+#[derive(Eq, Ord, PartialOrd)]
+pub struct PgPassEntry {
     host: String,
     port: u16,
     database: String,
@@ -170,6 +150,16 @@ impl fmt::Display for PgPassEntry {
     }
 }
 
+impl fmt::Debug for PgPassEntry {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "PgPassEntry {{ host: {}, port: {}, database: {}, username: {}, password: ******* }}",
+            self.host, self.port, self.database, self.username
+        )
+    }
+}
+
 fn pgpass_from_satori_db(
     datastores_info: &DatastoresInfo,
     credentials: &Credentials,
@@ -177,12 +167,27 @@ fn pgpass_from_satori_db(
     datastores_info
         .datastores
         .values()
-        .filter(|info| info.r#type.is_postgres_dialect())
+        .filter(|info| {
+            let is_postgres_datastore = info.r#type.is_postgres_dialect();
+            log::debug!("Datastore is postgres: {is_postgres_datastore}, datastore: {info:?}");
+
+            let has_port = if info.port.is_some() {
+                true
+            } else {
+                log::debug!("Datastore info: {info:?} has no port, not adding to pgpass");
+                false
+            };
+            is_postgres_datastore && has_port
+})
         .flat_map(|datastore_info| {
+            if datastore_info.databases.is_empty() {
+                log::warn!("Datastore info: {datastore_info:?} has no databases, not adding to pgpass");
+            }
             datastore_info
                 .databases
                 .iter()
                 .map(|database| {
+                    log::debug!("Adding Datastore info: {datastore_info:?} to pgpass with database: {database}");
                     PgPassEntry::from_creds(
                         credentials.clone(),
                         datastore_info.port.expect("Unexpected missing port"),
@@ -192,7 +197,8 @@ fn pgpass_from_satori_db(
                             .clone(),
                         database.clone(),
                     )
-                })
+                }
+            )
                 .collect::<HashSet<PgPassEntry>>()
         })
         .collect::<HashSet<PgPassEntry>>()

@@ -1,0 +1,4 @@
+postgres.example.com:5432:postgres:OLD_USER:OLD_PASSWORD
+postgres.example.com:5432:customers:OLD_USER:OLD_PASSWORD
+redshift.example.com:5432:redshift_db:OLD_USER:OLD_PASSWORD
+redshift.example.com:5432:customers:OLD_USER:OLD_PASSWORD

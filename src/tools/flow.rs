@@ -5,7 +5,7 @@ where
     R: std::io::BufRead,
 {
     match params {
-        Tools::PgPass(pg_pass) => pgpass::run(pg_pass).await,
+        Tools::PgPass(pg_pass) => pgpass::run(pg_pass, user_input_stream).await,
         Tools::Aws(aws) => aws::run(aws, user_input_stream).await,
     }
 }

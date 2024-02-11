@@ -37,98 +37,78 @@ where
     R: BufRead,
 {
     let file_path = get_credentials_file_path(&params.satori_folder_path);
-    let credentials = if params.refresh {
-        None
+    // If refresh flag is set, both credentials and datastores should be refreshed
+    // else try to load each from file
+    let creds_and_datastores = if params.refresh {
+        (None, None)
     } else {
-        read_credentials_from_file(&file_path)
+        let datastores = datastores::file::load(&params.satori_folder_path)
+            .map_err(|err| {
+                log::warn!("Failed to load datastores from file: {err}, generating a new one")
+            })
+            .ok();
+        let creds = read_credentials_from_file(&file_path);
+        (creds, datastores)
     };
 
-    log::debug!("credentials: {:?}", credentials);
-    let (credentials, jwt, account_id) = if let Some(credentials) = credentials {
-        (credentials, None, None)
-    } else {
-        log::debug!("Failed to read credentials from file, starting login flow");
-        let jwt = get_jwt(
-            params.port,
-            params.domain.clone(),
-            params.open_browser,
-            params.invalid_cert,
-            user_input_stream,
-        )
-        .await?;
-        let user_info =
-            satori_console::get_user_info(&params.domain, CLIENT_ID, &jwt, params.invalid_cert)
-                .await?;
-        let database_credentials =
-            get_database_credentials(&user_info.id, &params.domain, &jwt, params.invalid_cert)
-                .await?;
-        if params.write_to_file {
-            write_to_file(&database_credentials, &params.satori_folder_path)?;
+    let creds_and_datastores = match creds_and_datastores {
+        (None, None) => {
+            log::debug!("No credentials or datastores found in file, starting login flow");
+            get_database_credentials_and_datastore_info(params, user_input_stream).await?
         }
-        (database_credentials, Some(jwt), Some(user_info.account_id))
-    };
-    let datastores = if params.refresh {
-        None
-    } else {
-        match datastores::file::load(&params.satori_folder_path) {
-            Ok(datastores_info) => Some(datastores_info),
-            Err(err) => {
-                log::debug!("Error loading datastores from file: {:?}", err);
-                None
-            }
+        (None, Some(ds_info)) => {
+            log::debug!("No credentials found in file, but datastores found, starting login flow");
+            let database_credentials = get_database_credentials(params, user_input_stream).await?;
+            (database_credentials, ds_info)
         }
-    };
-    #[allow(clippy::struct_excessive_bools)]
-    #[allow(clippy::single_match_else)]
-    let datastores = match datastores {
-        Some(datastores) => datastores,
-        None => {
-            let jwt = match jwt {
-                Some(jwt) => jwt,
-                None => {
-                    let reader = io::stdin();
-                    let input = reader.lock();
-                    get_jwt(
-                        params.port,
-                        params.domain.clone(),
-                        params.open_browser,
-                        params.invalid_cert,
-                        input,
-                    )
-                    .await?
-                }
-            };
-            let account_id = if let Some(account_id) = account_id {
-                account_id
-            } else {
-                let user_info = satori_console::get_user_info(
-                    &params.domain,
-                    CLIENT_ID,
-                    &jwt,
-                    params.invalid_cert,
-                )
-                .await?;
-                user_info.account_id
-            };
-            let ds_info = datastores::get_from_console(
-                &jwt,
-                &params.domain,
-                CLIENT_ID,
-                account_id,
-                params.invalid_cert,
-            )
-            .await?;
-            datastores::file::write(&ds_info, &params.satori_folder_path)?;
-            ds_info
+        (Some(creds), None) => {
+            log::debug!("Credentials found in file, but no datastores, starting login flow");
+            let ds_info = get_datastores_info(params, user_input_stream).await?;
+            (creds, ds_info)
         }
+        (Some(creds), Some(ds_info)) => (creds, ds_info),
     };
-    Ok((credentials, datastores))
+
+    Ok(creds_and_datastores)
 }
 
 /// Login to Satori, save the JWT, returns the credentials
 /// Write to file if it is part of the parameters
 /// `user_input_stream`: where to read the user input from, should be set to `io::stdin()` to get from stdio
 pub async fn run<R>(params: &Login, user_input_stream: R) -> Result<(), errors::LoginError>
+where
+    R: BufRead,
+{
+    let datastore_info = if params.refresh {
+        None
+    } else {
+        datastores::file::load(&params.satori_folder_path)
+            .map_err(|err| {
+                log::warn!("Failed to load datastores from file: {err}, generating a new one")
+            })
+            .ok()
+    };
+
+    let database_credentials = if datastore_info.is_none() {
+        let (creds, _) =
+            get_database_credentials_and_datastore_info(params, user_input_stream).await?;
+        creds
+    } else {
+        get_database_credentials(params, user_input_stream).await?
+    };
+    if !params.write_to_file {
+        log::info!(
+            "{}",
+            credentials_as_string(&database_credentials, &params.format)
+        );
+    }
+    Ok(())
+}
+
+async fn get_database_credentials_and_datastore_info<R>(
+    params: &Login,
+    user_input_stream: R,
+) -> Result<(Credentials, DatastoresInfo), errors::LoginError>
 where
     R: BufRead,
 {
@@ -142,51 +122,88 @@ where
     .await?;
     let user_info =
         satori_console::get_user_info(&params.domain, CLIENT_ID, &jwt, params.invalid_cert).await?;
-    let database_credentials =
-        get_database_credentials(&user_info.id, &params.domain, &jwt, params.invalid_cert).await?;
+    let database_credentials = get_database_credentials_from_satori(
+        &user_info.id,
+        &params.domain,
+        &jwt,
+        params.invalid_cert,
+    )
+    .await?;
+    let ds_info = datastores::get_from_console(
+        &jwt,
+        &params.domain,
+        CLIENT_ID,
+        user_info.account_id,
+        params.invalid_cert,
+    )
+    .await?;
     if params.write_to_file {
         write_to_file(&database_credentials, &params.satori_folder_path)?;
-    } else {
-        log::info!(
-            "{}",
-            credentials_as_string(&database_credentials, &params.format)
-        );
     }
-    if refresh_datastores(params, &user_info) {
-        let ds_info = datastores::get_from_console(
-            &jwt,
-            &params.domain,
-            CLIENT_ID,
-            user_info.account_id,
-            params.invalid_cert,
-        )
-        .await?;
-        datastores::file::write(&ds_info, &params.satori_folder_path)?;
-    }
-    Ok(())
+    datastores::file::write(&ds_info, &params.satori_folder_path)?;
+    Ok((database_credentials, ds_info))
 }
 
-fn refresh_datastores(params: &Login, user_info: &satori_console::UserProfile) -> bool {
-    if params.refresh {
-        return true;
+async fn get_database_credentials<R>(
+    params: &Login,
+    user_input_stream: R,
+) -> Result<Credentials, errors::LoginError>
+where
+    R: BufRead,
+{
+    let jwt = get_jwt(
+        params.port,
+        params.domain.clone(),
+        params.open_browser,
+        params.invalid_cert,
+        user_input_stream,
+    )
+    .await?;
+    let user_info =
+        satori_console::get_user_info(&params.domain, CLIENT_ID, &jwt, params.invalid_cert).await?;
+    let database_credentials = get_database_credentials_from_satori(
+        &user_info.id,
+        &params.domain,
+        &jwt,
+        params.invalid_cert,
+    )
+    .await?;
+    if params.write_to_file {
+        write_to_file(&database_credentials, &params.satori_folder_path)?;
     }
-    match datastores::file::load(&params.satori_folder_path) {
-        Ok(ds_info) => {
-            if ds_info.account_id == user_info.account_id {
-                false
-            } else {
-                log::debug!("Account id changed, refreshing datastores");
-                true
-            }
-        }
-        Err(err) => {
-            log::debug!("Error loading datastores from file: {:?}", err);
-            true
-        }
-    }
+    Ok(database_credentials)
 }
 
-async fn get_database_credentials(
+async fn get_datastores_info<R>(
+    params: &Login,
+    user_input_stream: R,
+) -> Result<DatastoresInfo, errors::LoginError>
+where
+    R: BufRead,
+{
+    let jwt = get_jwt(
+        params.port,
+        params.domain.clone(),
+        params.open_browser,
+        params.invalid_cert,
+        user_input_stream,
+    )
+    .await?;
+    let user_info =
+        satori_console::get_user_info(&params.domain, CLIENT_ID, &jwt, params.invalid_cert).await?;
+    let ds_info = datastores::get_from_console(
+        &jwt,
+        &params.domain,
+        CLIENT_ID,
+        user_info.account_id,
+        params.invalid_cert,
+    )
+    .await?;
+    datastores::file::write(&ds_info, &params.satori_folder_path)?;
+    Ok(ds_info)
+}
+
+async fn get_database_credentials_from_satori(
     user_id: &str,
     domain: &str,
     jwt: &str,
@@ -198,7 +215,6 @@ async fn get_database_credentials(
             .into(),
     )
 }
-
 async fn get_jwt<R>(
     port: u16,
     domain: String,
