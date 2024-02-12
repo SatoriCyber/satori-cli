@@ -1,5 +1,3 @@
-use std::io;
-
 use minijinja::{context, Value};
 
 use crate::{
@@ -10,14 +8,21 @@ use crate::{
     login::{self, data::Credentials},
 };
 
-use super::{errors, DynamicTool};
+use super::{errors, DynamicTool, ExecuteCommand};
 
 const TOOLS_TEMPLATE_NAME: &str = "tools";
 
-pub async fn run(params: DynamicTool) -> Result<(), errors::RunError> {
-    let reader = io::stdin();
-    let input = reader.lock();
-    let (credentials, datastores_info) = login::run_with_file(&params.login, input).await?;
+pub async fn run<R, C>(
+    params: DynamicTool,
+    user_input_stream: R,
+    command_executer: C,
+) -> Result<(), errors::RunError>
+where
+    R: std::io::BufRead,
+    C: ExecuteCommand,
+{
+    let (credentials, datastores_info) =
+        login::run_with_file(&params.login, user_input_stream).await?;
     let datastore_info = datastores_info
         .datastores
         .get(&params.datastore_name)
@@ -43,14 +48,7 @@ pub async fn run(params: DynamicTool) -> Result<(), errors::RunError> {
         })
         .collect::<Vec<(String, String)>>();
 
-    let mut command_results = std::process::Command::new(tool_data.command.clone())
-        .args(args)
-        .envs(envs)
-        .spawn()
-        .map_err(|err| errors::RunError::CommandError(err, tool_data.command.clone()))?;
-    command_results
-        .wait()
-        .map_err(|err| errors::RunError::SpawnError(err, tool_data.command.clone()))?;
+    command_executer.execute(&tool_data.command, args, envs)?;
     Ok(())
 }
 /// Get the data of the tool from the tools.yaml file

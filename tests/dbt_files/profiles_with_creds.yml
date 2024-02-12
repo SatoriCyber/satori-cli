@@ -1,0 +1,22 @@
+satori_cli_test_profile:
+  target: dev
+  outputs:
+    prod:
+      # this host doesn't exist in satori datastores
+      host: postgres.prod.example.com
+      user: MANUALLY_SET_USER
+      password: MANUALLY_SET_PASSWORD
+      dbname: postgres
+      port: 5432
+      schema: some_schema
+      threads: 4
+      type: postgres
+    dev:
+      host: postgres.example.com
+      user: Alice
+      password: AlicePassword
+      dbname: postgres
+      port: 5432
+      schema: dev_schema
+      threads: 4
+      type: postgres

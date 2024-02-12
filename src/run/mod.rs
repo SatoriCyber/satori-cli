@@ -1,5 +1,5 @@
 mod data;
-mod dbt;
+pub mod dbt;
 mod dynamic_tools;
 mod flow;
 
