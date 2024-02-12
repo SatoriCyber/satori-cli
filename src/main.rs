@@ -2,12 +2,10 @@ use std::io;
 
 use anyhow::{anyhow, Result};
 use helpers::logger;
-use satori_cli::{helpers, login, tools};
+use run::CommandExecuter;
+use satori_cli::{helpers, list, login, run, tools};
 
 mod cli;
-
-mod list;
-mod run;
 
 #[tokio::main]
 async fn main() {
@@ -33,11 +31,12 @@ async fn main() {
 async fn handle_flow(flow: cli::Flow) -> Result<()> {
     let reader = io::stdin();
     let input = reader.lock();
+    let command_executer = CommandExecuter;
     match flow {
         cli::Flow::Login(params) => login::run(&params, input)
             .await
             .map_err(|err| anyhow!("Failed to login: {}", err)),
-        cli::Flow::Run(params) => run::run(params)
+        cli::Flow::Run(params) => run::run(params, input, command_executer)
             .await
             .map_err(|err| anyhow!("Failed to run: {}", err)),
         cli::Flow::AutoComplete(params, out) => {

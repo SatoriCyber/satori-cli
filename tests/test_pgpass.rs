@@ -113,7 +113,7 @@ async fn test_pgpass_non_satori_entries() {
 
 /// User already have satori pgpass entries, validates we update the credentials.
 #[tokio::test]
-async fn test_aws_expired_credentials() {
+async fn test_pgpass_expired_credentials() {
     let temp_dir = temp_dir::generate();
     let datastores_info = get_mock_datastores("postgres_datastores.json");
     let datastores_entries_response_path = get_access_details_db_empty_response_path();

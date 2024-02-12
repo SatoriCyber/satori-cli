@@ -2,7 +2,6 @@ use core::fmt;
 use std::{
     collections::HashMap,
     fs::{self, File},
-    io,
     path::PathBuf,
 };
 
@@ -10,12 +9,20 @@ use regex::Regex;
 
 use crate::login;
 
-use super::{errors, Dbt};
+use super::{errors, Dbt, ExecuteCommand};
 
 type ProfileName = String;
 type TargetName = String;
 
-pub async fn run(params: Dbt) -> Result<(), errors::RunError> {
+pub async fn run<R, C>(
+    params: Dbt,
+    user_input_stream: R,
+    command_executer: C,
+) -> Result<(), errors::RunError>
+where
+    R: std::io::BufRead,
+    C: ExecuteCommand,
+{
     let mut profiles = get_profiles(&params.profiles_path)?;
     let active_profile = profiles
         .value
@@ -38,9 +45,7 @@ pub async fn run(params: Dbt) -> Result<(), errors::RunError> {
         rewritten = true;
     }
     log::debug!("rewritten {:?}", rewritten);
-    let reader = io::stdin();
-    let input = reader.lock();
-    let (credentials, _) = login::run_with_file(&params.login, input).await?;
+    let (credentials, _) = login::run_with_file(&params.login, user_input_stream).await?;
 
     if rewritten {
         let bk_path = params.profiles_path.with_file_name("profiles.bk");
@@ -79,14 +84,7 @@ pub async fn run(params: Dbt) -> Result<(), errors::RunError> {
 
     log::debug!("executing dbt with args: {:?} env: {:?}", args, envs);
 
-    let mut command_results = std::process::Command::new("dbt")
-        .args(args)
-        .envs(envs)
-        .spawn()
-        .map_err(|err| errors::RunError::CommandError(err, "dbt".to_string()))?;
-    command_results
-        .wait()
-        .map_err(|err| errors::RunError::SpawnError(err, "dbt".to_string()))?;
+    command_executer.execute("dbt", args, envs)?;
     Ok(())
 }
 
@@ -120,20 +118,20 @@ fn should_rewrite_field(field: &str) -> bool {
     }
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Eq, PartialEq)]
 #[serde(transparent)]
-struct Profiles {
+pub struct Profiles {
     value: HashMap<ProfileName, ProfileValues>,
 }
 
-#[derive(serde::Deserialize, serde::Serialize, Debug)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Eq, PartialEq)]
 struct ProfileValues {
     // This is the default target if no target is specified
     target: String,
     outputs: HashMap<TargetName, TargetValues>,
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(serde::Deserialize, serde::Serialize, Eq, PartialEq)]
 struct TargetValues {
     host: String,
     user: String,
