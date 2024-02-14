@@ -1,6 +1,6 @@
 mod data;
 pub mod dbt;
-mod dynamic_tools;
+pub mod dynamic_tools;
 mod flow;
 
 pub mod errors;
