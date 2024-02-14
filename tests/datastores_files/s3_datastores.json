@@ -1,0 +1,12 @@
+{
+    "account_id": "account_id",
+    "datastores": {
+        "s3_datastore": {
+            "satori_host": "s3.example.com",
+            "databases": [],
+            "port": null,
+            "type": "S3",
+            "deployment_type": null
+          }
+    }
+}

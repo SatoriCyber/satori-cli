@@ -1,0 +1,12 @@
+{
+    "account_id": "account_id",
+    "datastores": {
+        "mongo_datastore": {
+            "satori_host": "mongo.example.com",
+            "databases": [],
+            "port": 27017,
+            "type": "MONGO",
+            "deployment_type": "MongoDBSrv"
+        }
+    }
+}

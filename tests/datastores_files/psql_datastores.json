@@ -1,0 +1,15 @@
+{
+    "account_id": "account_id",
+    "datastores": {
+        "postgres": {
+            "satori_host": "postgres.example.com",
+            "databases": [
+                "postgres",
+                "customers"
+            ],
+            "port": 5432,
+            "type": "POSTGRESQL",
+            "deployment_type": null
+        }
+    }
+}
