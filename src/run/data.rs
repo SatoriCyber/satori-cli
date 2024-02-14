@@ -21,7 +21,8 @@ pub struct Dbt {
     pub additional_args: Vec<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Builder)]
+#[builder(pattern = "owned")]
 pub struct DynamicTool {
     pub tool: String,
     pub login: Login,
