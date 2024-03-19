@@ -164,7 +164,7 @@ fn pgpass_from_satori_db(
     datastores_info: &DatastoresInfo,
     credentials: &Credentials,
 ) -> HashSet<PgPassEntry> {
-    datastores_info
+    let pg_datastores = datastores_info
         .datastores
         .values()
         .filter(|info| {
@@ -201,7 +201,11 @@ fn pgpass_from_satori_db(
             )
                 .collect::<HashSet<PgPassEntry>>()
         })
-        .collect::<HashSet<PgPassEntry>>()
+        .collect::<HashSet<PgPassEntry>>();
+    if pg_datastores.is_empty() {
+        log::warn!("No postgres datastores are available, go to the Satori Data Portal and verify that you have access to the relevant dataset. Also ensure that you have satori authentication for the datastore")
+    }
+    pg_datastores
 }
 
 fn pgpass_from_file(file: &File) -> Result<HashSet<PgPassEntry>, errors::ToolsError> {

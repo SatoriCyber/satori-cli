@@ -32,6 +32,11 @@ impl DatastoresInfo {
             datastores,
         }
     }
+
+    /// Check that there are datastores available to connect to.
+    pub fn is_datastores_available(&self) -> bool {
+        !self.datastores.is_empty()
+    }
 }
 
 #[derive(Deserialize, Debug, Clone, Serialize, Eq, PartialEq)]

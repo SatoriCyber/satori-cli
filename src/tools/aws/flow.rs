@@ -76,12 +76,16 @@ fn get_ini_content_or_new(path: &Path) -> Ini {
 fn get_aws_datastores(
     datastores_info: &'_ datastores::DatastoresInfo,
 ) -> Vec<(&'_ str, &'_ DatastoreInfo)> {
-    datastores_info
+    let aws_datastores = datastores_info
         .datastores
         .iter()
         .filter(|(_, datastore)| datastore.r#type.is_aws())
         .map(|(name, info)| (name.as_str(), info))
-        .collect()
+        .collect::<Vec<(&'_ str, &'_ DatastoreInfo)>>();
+    if aws_datastores.is_empty() {
+        log::warn!("No AWS datastores are available, go to the Satori Data Portal and verify that you have access to the relevant dataset. Also ensure that you have satori authentication for the datastore")
+    }
+    aws_datastores
 }
 
 fn get_hash_for_datastore(datastore_info: &DatastoreInfo, num_digits: u32) -> u64 {
