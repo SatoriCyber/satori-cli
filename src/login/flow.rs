@@ -137,6 +137,7 @@ where
         params.invalid_cert,
     )
     .await?;
+    check_datastores_available(&ds_info);
     if params.write_to_file {
         write_to_file(&database_credentials, &params.satori_folder_path)?;
     }
@@ -191,6 +192,7 @@ where
     .await?;
     let user_info =
         satori_console::get_user_info(&params.domain, CLIENT_ID, &jwt, params.invalid_cert).await?;
+
     let ds_info = datastores::get_from_console(
         &jwt,
         &params.domain,
@@ -199,6 +201,7 @@ where
         params.invalid_cert,
     )
     .await?;
+    check_datastores_available(&ds_info);
     datastores::file::write(&ds_info, &params.satori_folder_path)?;
     Ok(ds_info)
 }
@@ -433,4 +436,11 @@ fn extract_code(input_string: &str) -> Result<&str, errors::LoginError> {
 
 fn get_credentials_file_path(satori_folder_path: &Path) -> PathBuf {
     satori_folder_path.join(CREDENTIALS_FILE_NAME)
+}
+
+fn check_datastores_available(ds_info: &DatastoresInfo) {
+    if !ds_info.is_datastores_available() {
+        log::warn!("No datastores found, go to the Satori Data Portal and verify that you have access to the relevant dataset. Also ensure that you have satori authentication for the datastore"
+    )
+    }
 }
