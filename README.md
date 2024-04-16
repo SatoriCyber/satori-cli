@@ -1,3 +1,4 @@
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/SatoriCyber/satori-cli/total)
 # Satori-CLI 
 The Satori CLI enables you to access all of your available datasets from the command line, including both your personal datasets as well as datasets that are made available to you because they are open to groups and teams of which you are already a member. You can request access to read, write or administer datasets.
 
