@@ -18,7 +18,11 @@ const PGPASS_FILE_NAME: &str = "pgpass.conf";
 pub fn build(args: &ArgMatches) -> Result<PgPass, CliError> {
     common::set_debug(args);
     let login = build_login_common_args(args).build().unwrap();
-    let pgpass_path = get_pgpass_file_path()?;
+    let pgpass_path = match args.get_one::<PathBuf>("path").cloned() {
+        Some(path) => path.join(PGPASS_FILE_NAME),
+        None => get_pgpass_file_path()?,
+    };
+
     Ok(PgPass {
         login,
         path: pgpass_path,
