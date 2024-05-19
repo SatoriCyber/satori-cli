@@ -15,7 +15,7 @@ fn get_command_pgpass() -> Command {
             .short('p')
             .long("path")
             .required(false)
-            .help("Path to the pgpass file, default will be used based on the OS")
+            .help("Path to the pgpass file should include the filename, for example /foo/pgpass.config, default will be used based on the OS")
             .value_parser(value_parser!(PathBuf)),
     );
 
