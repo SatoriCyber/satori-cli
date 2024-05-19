@@ -19,7 +19,7 @@ pub fn build(args: &ArgMatches) -> Result<PgPass, CliError> {
     common::set_debug(args);
     let login = build_login_common_args(args).build().unwrap();
     let pgpass_path = match args.get_one::<PathBuf>("path").cloned() {
-        Some(path) => path.join(PGPASS_FILE_NAME),
+        Some(path) => path,
         None => get_pgpass_file_path()?,
     };
 
