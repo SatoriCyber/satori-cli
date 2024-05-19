@@ -192,8 +192,8 @@ async fn run_dbt_with_server_no_asserts<'b>(
     DatastoresMock<'b>,
 ) {
     let address = server.base_url();
-    let login_params = build_login(LoginBuilder::default(), &address, &temp_dir);
-    let dbt_params = build_dbt(dbt_builder, login_params, &temp_dir);
+    let login_params = build_login(LoginBuilder::default(), &address, temp_dir);
+    let dbt_params = build_dbt(dbt_builder, login_params, temp_dir);
 
     let mocks = run_server_no_asserts(
         server,

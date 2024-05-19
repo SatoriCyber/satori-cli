@@ -239,7 +239,7 @@ where
     Fut: Future<Output = ()> + 'static,
 {
     let address = server.base_url();
-    let login_params = build_login(login_builder, &address, &temp_dir);
+    let login_params = build_login(login_builder, &address, temp_dir);
 
     let mocks = run_server_no_asserts(
         server,
@@ -270,7 +270,7 @@ async fn run_login_with_file(login: Login) {
 
 fn validate_credentials(temp_dir: &TempDir, expected_credentials: Credentials) {
     let credentials = get_actual_credentials(temp_dir);
-    assert_eq!(credentials.username, credentials.username);
+    assert_eq!(credentials.username, expected_credentials.username);
     assert_eq!(credentials.password, expected_credentials.password);
 }
 

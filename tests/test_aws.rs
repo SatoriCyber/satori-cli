@@ -185,8 +185,8 @@ async fn run_aws_with_server_no_asserts<'b>(
     DatastoresMock<'b>,
 ) {
     let address = server.base_url();
-    let login_params = build_login(LoginBuilder::default(), &address, &temp_dir);
-    let aws_params = build_aws(aws_builder, login_params, &temp_dir);
+    let login_params = build_login(LoginBuilder::default(), &address, temp_dir);
+    let aws_params = build_aws(aws_builder, login_params, temp_dir);
 
     let mocks = run_server_no_asserts(
         server,
@@ -255,8 +255,8 @@ fn validates_aws_files(
             .clone()
     );
 
-    let actual_aws_credentials = read_actual_aws_file(&temp_dir, "credentials");
-    let actual_aws_config = read_actual_aws_file(&temp_dir, "config");
+    let actual_aws_credentials = read_actual_aws_file(temp_dir, "credentials");
+    let actual_aws_config = read_actual_aws_file(temp_dir, "config");
 
     let athena_values = actual_aws_credentials
         .section(Some(ATHENA_PROFILE))
@@ -276,22 +276,20 @@ fn validates_aws_files(
 
     let athena_section = actual_aws_config
         .section(Some(expected_athena_creds_section.clone()))
-        .expect(
-            format!(
+        .unwrap_or_else(|| {
+            panic!(
                 "Failed to find section: {} in {:?}",
                 expected_athena_creds_section, actual_aws_config
             )
-            .as_str(),
-        );
+        });
     let s3_section = actual_aws_config
         .section(Some(expected_s3_creds_section.clone()))
-        .expect(
-            format!(
+        .unwrap_or_else(|| {
+            panic!(
                 "Failed to find section: {} in {:?}",
                 expected_s3_creds_section, actual_aws_config
             )
-            .as_str(),
-        );
+        });
 
     let actual_athena_endpoint_url = athena_section.get("endpoint_url").unwrap();
     let actual_s3_endpoint_url = s3_section.get("endpoint_url").unwrap();

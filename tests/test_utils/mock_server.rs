@@ -32,15 +32,15 @@ pub async fn run_server_no_asserts<'b>(
     DatabaseCredentialsMock<'b>,
     DatastoresMock<'b>,
 ) {
-    let server_jwt_mock = oauth(&server, code_challenge, access_token.clone());
+    let server_jwt_mock = oauth(server, code_challenge, access_token.clone());
     let user_info_mock = user_info(
-        &server,
+        server,
         satori_user_id.clone(),
         satori_account_id,
         &access_token,
     );
-    let database_credentials_mock = database_credentials(&server, &satori_user_id, &access_token);
-    let datastores_mock = access_details_db(&server, &access_token, datastores_info_file_path);
+    let database_credentials_mock = database_credentials(server, &satori_user_id, &access_token);
+    let datastores_mock = access_details_db(server, &access_token, datastores_info_file_path);
     (
         server_jwt_mock,
         user_info_mock,
