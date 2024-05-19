@@ -319,7 +319,7 @@ async fn run_dynamic_tool_with_server_no_asserts<'b>(
     DatastoresMock<'b>,
 ) {
     let address = server.base_url();
-    let login_params = build_login(LoginBuilder::default(), &address, &temp_dir);
+    let login_params = build_login(LoginBuilder::default(), &address, temp_dir);
     let dynamic_tool_params = build_dynamic_tool(dynamic_tool_builder, login_params);
 
     let mocks = run_server_no_asserts(

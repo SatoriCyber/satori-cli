@@ -37,11 +37,11 @@ where
     let mut rewritten = false;
     if should_rewrite_field(&target_params.user) {
         log::debug!("rewriting user");
-        target_params.user = "{{ env_var('SATORI_USERNAME') }}".to_owned();
+        "{{ env_var('SATORI_USERNAME') }}".clone_into(&mut target_params.user);
         rewritten = true;
     }
     if should_rewrite_field(&target_params.password) {
-        target_params.password = "{{ env_var('SATORI_PASSWORD') }}".to_owned();
+        "{{ env_var('SATORI_PASSWORD') }}".clone_into(&mut target_params.password);
         rewritten = true;
     }
     log::debug!("rewritten {:?}", rewritten);
