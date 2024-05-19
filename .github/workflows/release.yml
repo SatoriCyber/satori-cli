@@ -129,7 +129,7 @@ jobs:
           run: |
             rustup target add x86_64-apple-darwin
         - name: Build
-          run: cargo build --release --bin satori
+          run: cargo build --target=x86_64-apple-darwin --release --bin satori
           env:
             CARGO_TERM_COLOR: always  
         - name: rename binary
