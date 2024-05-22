@@ -5,10 +5,12 @@ The Satori CLI enables you to access all of your available datasets from the com
 ## Overview
 - [Satori-CLI](#satori-cli)
   - [Overview](#overview)
+  - [Prerequisites](#prerequisites)
+    - [Windows](#windows)
   - [Installation](#installation)
     - [Install script (Recommended)](#install-script-recommended)
     - [Other install methods](#other-install-methods)
-      - [Windows](#windows)
+      - [Windows](#windows-1)
         - [Manual install](#manual-install)
         - [SCOOP](#scoop)
       - [Mac](#mac)
@@ -33,14 +35,21 @@ The Satori CLI enables you to access all of your available datasets from the com
   - [Contributing](#contributing)
 
 
+## Prerequisites
+### Windows
+* Powershell version 7.4 was tested. It is recommended to use this version or higher, version 5.X confirmed not to work.
+* WSL installed
+
 ## Installation
 
 ###  Install script (Recommended)
+To install the Satori CLI, run the following command (for windows run it in powershell terminal 7.4 or above):
 ```bash
 curl -s https://raw.githubusercontent.com/SatoriCyber/satori-cli/main/scripts/install_script.sh | bash
 ```
 
-For windows to work [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) must be installed.
+
+
 
 ### Other install methods
 #### Windows
