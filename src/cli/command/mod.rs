@@ -4,6 +4,7 @@ mod auto_complete;
 mod common_args;
 mod list;
 pub mod login;
+mod pwd;
 mod run;
 mod tools;
 
@@ -12,6 +13,7 @@ pub fn get() -> Command {
         .subcommand(run::get_command())
         .subcommand(login::get_command())
         .subcommand(auto_complete::get_command())
+        .subcommand(pwd::get_command())
         .hide(true)
         .subcommand(list::get_command())
         .hide(true)

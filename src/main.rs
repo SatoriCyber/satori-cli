@@ -3,7 +3,7 @@ use std::io;
 use anyhow::{anyhow, Result};
 use helpers::logger;
 use run::CommandExecuter;
-use satori_cli::{helpers, list, login, run, tools};
+use satori_cli::{helpers, list, login, pwd, run, tools};
 
 mod cli;
 
@@ -47,6 +47,9 @@ async fn handle_flow(flow: cli::Flow) -> Result<()> {
             list::run(params, &mut io::stdout()).map_err(|err| anyhow!("{}", err))
         }
         cli::Flow::Tools(params) => tools::run(params, input)
+            .await
+            .map_err(|err| anyhow!("{}", err)),
+        cli::Flow::Pwd(params) => pwd::run(params, input)
             .await
             .map_err(|err| anyhow!("{}", err)),
     }

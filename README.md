@@ -208,7 +208,7 @@ satori pgpass
 ```
 
 ### DataGrip
-DataGrip can call the Satori CLI before opening a connection to a database to retrieve credentials and make them available to DataGrip automatically.
+DataGrip can call the Satori CLI before opening a connection to a database to retrieve credentials and make them available to DataGrip automatically. If credentials are available and valid, Satori CLI will return them to DataGrip immediately. Otherwise, Satori CLI will invoke the login flow to authenticate the user and retrieve credentials from the data portal.
 
 To automate the process of obtaining credentials when using DataGrip follow these steps:
 
@@ -219,6 +219,14 @@ To automate the process of obtaining credentials when using DataGrip follow thes
 5. In the `Program` field enter `satori`.
 6. In the `Arguments` field enter the arguments for Satori CLI, depending on the type of database connection you are configuring. For example, for PostgreSQL or Redshift use `pgpass`.
 7. Click OK to save your settings
+
+### TablePlus
+TablePlus can call the Satori CLI before opening a connection to a database to retrieve the password and make it available to TablePlus automatically. If credentials are available and valid, Satori CLI will return them to TablePlus immediately. Otherwise, Satori CLI will invoke the login flow to authenticate the user and retrieve credentials from the data portal.
+
+To automate the process of obtaining credentials when using TablePlus follow these steps:
+
+1. In your password field of the connection settings, choose the `Command Line` option
+2. In the password field type the following command: `satori pwd`
 
 ### AWS
 Generates aws profiles.
