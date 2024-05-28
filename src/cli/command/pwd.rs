@@ -1,5 +1,5 @@
-use clap::{command, Command};
 use crate::cli::command::common_args;
+use clap::{command, Command};
 
 pub fn get_command() -> Command {
     let mut args = vec![];
