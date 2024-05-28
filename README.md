@@ -7,6 +7,7 @@ Tired of copying and pasting credentials from Satori to your database client too
   - [Overview](#overview)
   - [Prerequisites](#prerequisites)
     - [Windows](#windows)
+    - [Linux](#linux)
   - [Installation](#installation)
     - [Install script (Recommended)](#install-script-recommended)
     - [Other install methods](#other-install-methods)
@@ -28,6 +29,7 @@ Tired of copying and pasting credentials from Satori to your database client too
         - [Invoking DBT](#invoking-dbt)
     - [PgPass](#pgpass)
     - [DataGrip](#datagrip)
+    - [TablePlus](#tableplus)
     - [AWS](#aws)
       - [Arguments](#arguments-1)
     - [Login](#login)
@@ -39,6 +41,9 @@ Tired of copying and pasting credentials from Satori to your database client too
 ### Windows
 * Powershell version 7.4 was tested. It is recommended to use this version or higher, version 5.X confirmed not to work.
 * WSL installed
+
+### Linux
+* Libssl3 installed (shipped from ubuntu22.04)
 
 ## Installation
 
