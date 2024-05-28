@@ -6,6 +6,7 @@ mod auto_complete;
 mod common;
 mod list;
 mod login;
+mod pwd;
 mod run;
 mod tools;
 
@@ -18,6 +19,7 @@ pub fn parse(command: Command) -> Result<Flow, CliError> {
         "list" => list::build(command_args),
         "auto_complete" => Ok(auto_complete::build(command_args)),
         "pgpass" | "aws" => tools::build(command_name, command_args),
+        "pwd" => Ok(pwd::build(command_args)),
         _ => panic!("No subcommand found"),
     }
 }

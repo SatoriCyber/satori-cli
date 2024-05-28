@@ -104,7 +104,7 @@ pub async fn datastores_access_details(
 
     let address = format!("{domain}/api/v1/dataset/access-details-dbs");
 
-    log::info!("Retrieving datastores information, it might take a while");
+    log::debug!("Retrieving datastores information, it might take a while");
 
     let first_call =
         get_datastore_access_details_internal(&address, client_id, jwt, invalid_cert, page).await?;
@@ -116,7 +116,7 @@ pub async fn datastores_access_details(
     page += 1;
 
     while fetched_records < first_call.count {
-        log::info!(
+        log::debug!(
             "Retrieved datastores information, {} out of {}",
             fetched_records,
             first_call.count
@@ -128,7 +128,7 @@ pub async fn datastores_access_details(
         page += 1;
         results.extend(new_records.datastore_details);
     }
-    log::info!(
+    log::debug!(
         "Retrieved datastores information, {} out of {}",
         fetched_records,
         first_call.count
