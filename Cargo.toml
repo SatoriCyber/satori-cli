@@ -1,6 +1,6 @@
 [package]
 name = "satori-cli"
-version = "0.0.26"
+version = "0.0.27"
 edition = "2021"
 authors = ["Satori <devops@satoricyber.com>"]
 description = "Allow Satori users to obation database crendtials without the need to login to the Satori data portal"
