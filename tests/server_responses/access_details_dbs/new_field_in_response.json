@@ -1,0 +1,28 @@
+{
+    "records": [
+        {
+            "id": "account_id",
+            "name": "Mongo",
+            "description": "",
+            "dataStoreIds": [
+                "87547ac7-400e-4d8d-8333-95f52915ec62"
+            ]
+        }
+    ],
+    "count": 1,
+    "dataStoreDetails": [
+        {
+            "id": "87547ac7-400e-4d8d-8333-95f52915ec62",
+            "name": "mongo_datastore",
+            "type": "MONGO",
+            "satoriHostname": "mongo.example.com",
+            "port": 27017,
+            "satoriAuthEnabled": true,
+            "dataStoreSettings": {
+                "type": "MONGO",
+                "deploymentType": "MONGODB_SRV"
+            },
+            "dbs": []
+        }
+    ]
+}

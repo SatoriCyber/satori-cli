@@ -79,9 +79,8 @@ impl Hash for DatastoreAccessDetails {
 
 #[derive(Debug, serde::Deserialize, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub enum DatastoreSettings {
-    #[serde(rename = "deploymentType")]
-    MongoDeploymentType(MongoDeploymentType),
+pub struct DatastoreSettings {
+    pub deployment_type: MongoDeploymentType,
 }
 
 #[derive(Debug, serde::Deserialize, Clone, serde::Serialize)]
@@ -90,6 +89,8 @@ pub enum MongoDeploymentType {
     MongoDb,
     #[serde(rename = "MONGODB_SRV")]
     MongoDbSrv,
+    #[serde(other)]
+    Unknown,
 }
 
 #[derive(Debug, serde::Deserialize, Clone, Serialize, PartialEq, Eq)]
@@ -111,6 +112,8 @@ pub enum DatastoreType {
     S3,
     Mongo,
     Databricks,
+    #[serde(other)]
+    Unknown,
 }
 
 impl DatastoreType {
@@ -152,5 +155,12 @@ mod tests {
         let server_response =
             include_str!("test_files/datastore_access_details_satori_hostname_null.json");
         serde_json::from_str::<DatastoreAccessDetails>(server_response).unwrap();
+    }
+
+    #[test]
+    fn test_unknown_type() {
+        let as_str = "SOME_NEW_TYPE";
+        let as_type: DatastoreType = serde_json::from_str(&format!("\"{}\"", as_str)).unwrap();
+        assert_eq!(as_type, DatastoreType::Unknown);
     }
 }
