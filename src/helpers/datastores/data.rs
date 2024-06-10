@@ -57,7 +57,12 @@ impl Hash for DatastoreInfo {
 impl TryFrom<DatastoreAccessDetails> for DatastoreInfo {
     type Error = ToDsInfoError;
     fn try_from(value: DatastoreAccessDetails) -> Result<Self, Self::Error> {
-        let deployment_type = value.datastore_settings.map(MongoDeploymentType::from);
+        let deployment_type = value.datastore_settings.map(MongoDeploymentType::try_from);
+        let deployment_type = match deployment_type {
+            Some(Ok(deployment_type)) => Some(deployment_type),
+            Some(Err(err)) => return Err(err),
+            None => None,
+        };
         let satori_host = value
             .satori_hostname
             .ok_or(ToDsInfoError::MissingSatoriHostname)?;
@@ -96,15 +101,13 @@ pub enum MongoDeploymentType {
     MongoDBSrv,
 }
 
-impl From<DatastoreSettings> for MongoDeploymentType {
-    fn from(value: DatastoreSettings) -> Self {
-        match value {
-            DatastoreSettings::MongoDeploymentType(SatoriConsoleMongoDeploymentType::MongoDb) => {
-                Self::MongoDB
-            }
-            DatastoreSettings::MongoDeploymentType(
-                SatoriConsoleMongoDeploymentType::MongoDbSrv,
-            ) => Self::MongoDBSrv,
+impl TryFrom<DatastoreSettings> for MongoDeploymentType {
+    type Error = ToDsInfoError;
+    fn try_from(value: DatastoreSettings) -> Result<Self, Self::Error> {
+        match value.deployment_type {
+            SatoriConsoleMongoDeploymentType::MongoDb => Ok(Self::MongoDB),
+            SatoriConsoleMongoDeploymentType::MongoDbSrv => Ok(Self::MongoDBSrv),
+            SatoriConsoleMongoDeploymentType::Unknown => Err(ToDsInfoError::UnknownDeploymentType),
         }
     }
 }

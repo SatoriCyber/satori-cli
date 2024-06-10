@@ -28,4 +28,6 @@ pub enum GetHostError {
 pub enum ToDsInfoError {
     #[error("Missing satori hostname")]
     MissingSatoriHostname,
+    #[error("Unknown deployment type")]
+    UnknownDeploymentType,
 }

@@ -27,7 +27,8 @@ use crate::test_utils::{
     },
     datastores::{get_mock_datastores, write_datastores_temp_dir},
     mock_server::{
-        get_access_details_db_empty_response_path, get_access_details_db_single_response_path,
+        get_access_details_db_empty_response_path, get_access_details_db_path,
+        get_access_details_db_single_response_path,
     },
     temp_dir,
 };
@@ -142,6 +143,27 @@ async fn test_login_run_with_file_with_credentials_expire() {
     .await;
     let expected_credentials = get_new_credentials_expire_two_hours();
     validate_credentials(&temp_dir, expected_credentials);
+}
+
+/// Test that a new field in datastore settings doesn't cause fails of deserialization of the server response
+#[tokio::test]
+async fn test_login_run_new_field_datastore_settings() {
+    let temp_dir = temp_dir::generate();
+    let datastores_entries_response = get_access_details_db_path("new_field_in_response.json");
+
+    run_login_with_server_assert_all(
+        &temp_dir,
+        &datastores_entries_response,
+        LoginBuilder::default(),
+        run_login,
+    )
+    .await;
+    let expected_credentials = get_new_credentials_expire_two_hours();
+    validate_credentials(&temp_dir, expected_credentials);
+
+    let expected_datastores_info = get_mock_datastores("mongo_datastores.json");
+    let results_datastores_info = get_result_datastores_info(&temp_dir);
+    assert_eq!(expected_datastores_info, results_datastores_info);
 }
 
 async fn run_login_with_server_assert_all<F, Fut>(
