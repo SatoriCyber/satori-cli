@@ -47,7 +47,7 @@ Tired of copying and pasting credentials from Satori to your database client too
 
 ## Installation
 
-###  Install script (Recommended)
+###  Install Script (Recommended)
 To install the Satori CLI, run the following command (for windows run it in powershell terminal 7.4 or above):
 ```bash
 curl -s https://raw.githubusercontent.com/SatoriCyber/satori-cli/main/scripts/install_script.sh | bash
@@ -56,7 +56,7 @@ curl -s https://raw.githubusercontent.com/SatoriCyber/satori-cli/main/scripts/in
 
 
 
-### Other install methods
+### Addtional Installion Methods
 #### Windows
 ##### Manual install
 You can download the latest version from the [releases page](https://github.com/SatoriCyber/satori-cli/releases)
@@ -106,7 +106,7 @@ brew install satori_cli
 source "$(brew --prefix)/etc/bash_completion.d/satori_auto_complete.zsh"
 ```
 
-## first time use
+## First Time Use
 To enable auto-complete, run the [login](#login) command.
 
 ## Supported datastores
