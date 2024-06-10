@@ -1,8 +1,8 @@
 {
-  "version": "0.0.27",
+  "version": "0.0.28",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/SatoriCyber/satori-cli/releases/download/v0.0.27/satori-0.0.27-windows.zip",
+      "url": "https://github.com/SatoriCyber/satori-cli/releases/download/v0.0.28/satori-0.0.28-windows.zip",
       "hash": "a5eef6d70f2a9a02e1f381621c407b194c29ad4d12b342166bdee39669b20ab3"
     }
   },
