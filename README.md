@@ -9,14 +9,14 @@ Tired of copying and pasting credentials from Satori to your database client too
     - [Windows](#windows)
     - [Linux](#linux)
   - [Installation](#installation)
-    - [Install script (Recommended)](#install-script-recommended)
-    - [Other install methods](#other-install-methods)
+    - [Install Script (Recommended)](#install-script-recommended)
+    - [Addtional Installion Methods](#addtional-installion-methods)
       - [Windows](#windows-1)
         - [Manual install](#manual-install)
         - [SCOOP](#scoop)
       - [Mac](#mac)
         - [Homebrew](#homebrew)
-  - [first time use](#first-time-use)
+  - [First Time Use](#first-time-use)
   - [Supported datastores](#supported-datastores)
   - [Usage](#usage)
     - [Run](#run)
@@ -192,19 +192,14 @@ The Satori CLI then creates a backup of the file before modification.
 
 **Examples**
 ```bash
-satori run dbt debug
+satori run dbt
 ```
 
 Specify the target
 ```bash
-satori run dbt debug --target dev
+satori run dbt --target dev
 ```
 
-
-**Example**
-```bash
-  satori run psql <datastore name> <database>
-```
 
 ### PgPass
 Generates a pgpass file from all datastore information.
