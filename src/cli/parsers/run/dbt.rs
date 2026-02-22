@@ -38,7 +38,7 @@ pub fn build(args: &ArgMatches) -> Result<Flow, CliError> {
 /// 2. `DBT_PROFILES_DIR` environment variable is set
 /// 3. profiles.yml file is found in the current directory
 /// 4. default to ~/.dbt directory
-/// The file is always named profiles.yml
+///    The file is always named profiles.yml
 fn get_profiles_path(args: &ArgMatches) -> PathBuf {
     match args.get_one::<PathBuf>("profile-dir") {
         Some(profile_dir) => Path::new(&profile_dir).to_path_buf(),
