@@ -141,6 +141,87 @@ async fn test_aws_expired_credentials() {
     validates_aws_files(&temp_dir, &credentials, &datastores_info);
 }
 
+/// Test that stale Satori profiles are removed when user loses access to datastores
+/// User had S3 and Athena, now only has Athena. S3 profile should be removed.
+#[tokio::test]
+async fn test_aws_stale_profiles_removed() {
+    let temp_dir = temp_dir::generate();
+    let credentials = get_old_credentials_expire_two_hours();
+    let datastores_info = get_mock_datastores("athena_only_datastores.json");
+    let datastores_entries_response_path = get_access_details_db_empty_response_path();
+
+    // Start with files that have both S3 and Athena profiles
+    let old_config = read_ini_file(AWS_CREDENTIALS_DIR, "stale_config_with_s3");
+    let old_credentials = read_ini_file(AWS_CREDENTIALS_DIR, "stale_credentials_with_s3");
+
+    write_credentials_temp_dir(&credentials, &temp_dir);
+    write_datastores_temp_dir(&datastores_info, &temp_dir);
+    write_aws_temp_dir(&temp_dir, old_config, old_credentials);
+
+    run_aws_with_server_assert_no_calls_to_server(
+        &temp_dir,
+        &datastores_entries_response_path,
+        AwsBuilder::default(),
+    )
+    .await;
+
+    // Read the resulting files
+    let actual_credentials = read_actual_aws_file(&temp_dir, "credentials");
+    let actual_config = read_actual_aws_file(&temp_dir, "config");
+
+    // Verify S3 profile was removed from credentials
+    assert!(
+        actual_credentials.section(Some(S3_PROFILE)).is_none(),
+        "S3 profile should be removed from credentials"
+    );
+
+    // Verify S3 profile was removed from config
+    let s3_config_section = format!("profile {}", S3_PROFILE);
+    assert!(
+        actual_config.section(Some(&s3_config_section)).is_none(),
+        "S3 profile should be removed from config"
+    );
+
+    // Verify Athena profile still exists in credentials
+    assert!(
+        actual_credentials.section(Some(ATHENA_PROFILE)).is_some(),
+        "Athena profile should still exist in credentials"
+    );
+
+    // Verify Athena profile still exists in config
+    let athena_config_section = format!("profile {}", ATHENA_PROFILE);
+    assert!(
+        actual_config
+            .section(Some(&athena_config_section))
+            .is_some(),
+        "Athena profile should still exist in config"
+    );
+
+    // Verify non-Satori profiles are preserved in credentials
+    assert!(
+        actual_credentials.section(Some("default")).is_some(),
+        "Default profile should be preserved"
+    );
+    assert!(
+        actual_credentials
+            .section(Some("personal-account"))
+            .is_some(),
+        "Personal account profile should be preserved"
+    );
+
+    // Verify non-Satori profiles are preserved in config
+    assert!(
+        actual_config.section(Some("default")).is_some(),
+        "Default config should be preserved"
+    );
+    assert!(
+        actual_config
+            .section(Some("profile personal-account"))
+            .is_some(),
+        "Personal account config should be preserved"
+    );
+}
+
 async fn run_aws_with_server_assert_no_calls_to_server(
     temp_dir: &TempDir,
     datastores_info_file_path: &Path,
