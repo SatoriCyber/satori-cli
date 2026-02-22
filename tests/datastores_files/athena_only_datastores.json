@@ -1,0 +1,12 @@
+{
+    "account_id": "account_id",
+    "datastores": {
+        "athena1": {
+            "satori_host": "athena.example.com",
+            "databases": [],
+            "port": null,
+            "type": "ATHENA",
+            "deployment_type": null
+        }
+    }
+}

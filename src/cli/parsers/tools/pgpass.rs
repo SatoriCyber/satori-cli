@@ -32,7 +32,7 @@ pub fn build(args: &ArgMatches) -> Result<PgPass, CliError> {
 #[cfg(target_family = "unix")]
 fn get_pgpass_file_path() -> Result<PathBuf, CliError> {
     Ok(homedir::get_my_home()?
-        .ok_or_else(|| CliError::HomeDirNotFound)?
+        .ok_or(CliError::HomeDirNotFound)?
         .join(Path::new(PGPASS_FILE_NAME)))
 }
 

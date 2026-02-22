@@ -1,5 +1,5 @@
 use std::{
-    collections::hash_map::DefaultHasher,
+    collections::{hash_map::DefaultHasher, HashSet},
     hash::{Hash, Hasher},
     path::Path,
 };
@@ -28,6 +28,8 @@ where
     let (credentials, datastores_info) =
         login::run_with_file(&params.login, user_input_stream).await?;
 
+    let mut expected_satori_profiles = HashSet::new();
+
     let mut is_first = true;
     for (datastore_name, datastore_info) in get_aws_datastores(&datastores_info) {
         let datastore_type = format!("{:?}", &datastore_info.r#type);
@@ -37,6 +39,8 @@ where
             datastore_type.to_ascii_lowercase()
         );
         let endpoint_url = &datastore_info.get_datastore_name()?;
+
+        expected_satori_profiles.insert(profile_name.clone());
 
         config_content
             .with_section(Some(format!("profile {profile_name}")))
@@ -52,6 +56,9 @@ where
         }
         log::info!("    {datastore_name}: {profile_name}");
     }
+
+    remove_stale_satori_profiles(&mut credentials_content, &expected_satori_profiles);
+    remove_stale_satori_profiles_from_config(&mut config_content, &expected_satori_profiles);
 
     credentials_content
         .write_to_file(params.credentials_path.clone())
@@ -96,6 +103,55 @@ fn get_hash_for_datastore(datastore_info: &DatastoreInfo, num_digits: u32) -> u6
     // Take only the last 'num_digits' digits of the hash value
     let divisor = 10u64.pow(num_digits);
     hash_value % divisor
+}
+
+fn remove_stale_satori_profiles(ini: &mut Ini, expected_profiles: &HashSet<String>) {
+    let sections_to_remove: Vec<String> = ini
+        .sections()
+        .filter_map(|section_name| {
+            section_name.and_then(|name| {
+                if name.starts_with(PROFILE_NAME_PREFIX) && !expected_profiles.contains(name) {
+                    Some(name.to_string())
+                } else {
+                    None
+                }
+            })
+        })
+        .collect();
+
+    for section in &sections_to_remove {
+        log::info!("Removing stale profile: {}", section);
+        ini.delete(Some(section));
+    }
+}
+
+fn remove_stale_satori_profiles_from_config(ini: &mut Ini, expected_profiles: &HashSet<String>) {
+    let prefix = format!("profile {}", PROFILE_NAME_PREFIX);
+    let sections_to_remove: Vec<String> = ini
+        .sections()
+        .filter_map(|section_name| {
+            section_name.and_then(|name| {
+                if name.starts_with(&prefix) {
+                    // Extract profile name without "profile " prefix
+                    let profile_name = name.strip_prefix("profile ").unwrap_or(name);
+                    if profile_name.starts_with(PROFILE_NAME_PREFIX)
+                        && !expected_profiles.contains(profile_name)
+                    {
+                        Some(name.to_string())
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+        })
+        .collect();
+
+    for section in &sections_to_remove {
+        log::info!("Removing stale config section: {}", section);
+        ini.delete(Some(section));
+    }
 }
 
 #[cfg(test)]

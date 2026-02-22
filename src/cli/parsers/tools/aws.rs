@@ -42,8 +42,7 @@ fn get_from_env_or_default(env_var: &str, default: &str) -> Result<PathBuf, cli:
         Err(err) => {
             log::debug!("failed to read path from env var: {}", err);
 
-            let home_dir =
-                homedir::get_my_home()?.ok_or_else(|| cli::errors::CliError::HomeDirNotFound)?;
+            let home_dir = homedir::get_my_home()?.ok_or(cli::errors::CliError::HomeDirNotFound)?;
             Ok(home_dir.join(default))
         }
     }

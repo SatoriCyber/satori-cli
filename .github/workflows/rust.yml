@@ -2,9 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   CARGO_TERM_COLOR: always
@@ -14,68 +14,67 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: install next test
-      run: curl -LsSf https://get.nexte.st/latest/linux | tar zxf - -C ${CARGO_HOME:-~/.cargo}/bin 
-    - name: Run tests
-      run: cargo nextest run --verbose
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        if-no-files-found: error
-        name: satori_linux
-        path: ./target/debug/satori
-  
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose
+      - name: install next test
+        run: curl -LsSf https://get.nexte.st/latest/linux | tar zxf - -C ${CARGO_HOME:-~/.cargo}/bin
+      - name: Run tests
+        run: cargo nextest run --verbose
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: satori_linux
+          path: ./target/debug/satori
+
   build-windows:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        if-no-files-found: error
-        name: satori.exe
-        path: ./target/debug/satori.exe
-  
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: satori.exe
+          path: ./target/debug/satori.exe
+
   build-mac:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose    
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        if-no-files-found: error
-        name: satori_mac
-        path: ./target/debug/satori
-  
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          if-no-files-found: error
+          name: satori_mac
+          path: ./target/debug/satori
+
   clippy:
     runs-on: ubuntu-latest
-    steps:  
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose    
-    - name: clippy
-      run: cargo clippy -- -D warnings
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --verbose
+      - name: clippy
+        run: cargo clippy -- -D warnings
 
   audit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Audit
-        run: cargo audit
-  
+        run: cargo install cargo-audit && cargo audit
+
   fmt:
     runs-on: ubuntu-latest
-    steps:  
-    - uses: actions/checkout@v4
-    - name: fmt
-      run: cargo fmt -- --check
-      
+    steps:
+      - uses: actions/checkout@v4
+      - name: fmt
+        run: cargo fmt -- --check

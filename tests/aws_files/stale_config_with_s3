@@ -1,0 +1,11 @@
+[default]
+region=us-east-1
+
+[profile satori_athena_190337]
+endpoint_url=https://athena.example.com
+
+[profile satori_s3_575495]
+endpoint_url=https://s3.example.com
+
+[profile personal-account]
+region=us-west-2
