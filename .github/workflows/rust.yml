@@ -70,7 +70,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Audit
-        run: cargo install cargo-auditcargo audit
+        run: cargo install cargo-audit && cargo audit
 
   fmt:
     runs-on: ubuntu-latest
